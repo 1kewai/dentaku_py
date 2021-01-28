@@ -5,8 +5,8 @@ class Token:
         self.isCommand=0#加減算、乗算除算などの記号であるかの情報、1or0
         self.text=""#データを文字で置いておく
         self.number=0.0#数値データの場合は数値に変わる
-        self.bracketstart=0#括弧の開始地点ではこれが1になる
-        self.bracketstop=0#括弧の終了地点ではこれが1になる
+        self.bracketStart=0#括弧の開始地点ではこれが1になる
+        self.bracketStop=0#括弧の終了地点ではこれが1になる
         self.isNull=1#これの中身がないならば1になる
 
         #コンストラクタに渡された記号や数値などを解析して分類し、上のパラメーターを設定していく。
@@ -42,7 +42,7 @@ class Token:
                 processed=1
             if data=="(":
                 self.isNull=0
-                self.bracketstart=1
+                self.bracketStart=1
                 processed=1
             if data==")":
                 self.isNull=0
@@ -53,13 +53,13 @@ class Token:
         if processed==0:
             print("式の形が不正です。")
             raise Exception()
-class Tokens:
+
+class Tokenizer:
     #上で定義したToken型の変数について、普通の数式には複数あるので、まとめて扱いやすくするためのクラスを作る。
-    #tokenの個数は、100個まで対応させる。増やそうと思えばメモリが足りるだけ増やせると思われる。
-    data=[]
-    for i in range(0,100):
-        data.append(Token(1))
-
-
-test=Token(")")
-print("complete")
+    def __init__(self,formula_raw):#formula_rawは文字列型の状態の数式
+        self.data=[]#Token型の配列をここに代入していく
+        self.bracketDepth=[]#ここにint型の配列という形で、式の括弧の構造に関する情報を入れていく。
+        #入力された式が本当に正しいかテストする必要がある。
+        #この下２行の変数を用いて、括弧の開始と終了の数が等しいか確認する。
+        bracketStartNumber=0
+        bracketStopNumber=0

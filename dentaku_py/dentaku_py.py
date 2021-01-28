@@ -235,9 +235,14 @@ class Tokenizer:
                             cont=0
                         if is_Int(formula_raw[i]):
                             temp+=formula_raw[i]
-                        if is_Int(formula_raw[i+1]):
+                        if i+1<len(formula_raw):
+                            if is_Int(formula_raw[i+1]):
+                                cont=0
+                        else:
                             cont=0
                         i+=1
+                    if self.data[-1].isNumber:
+                        self.data.append(Token("+"))
                     self.data.append(Token(temp))
                     continue
 

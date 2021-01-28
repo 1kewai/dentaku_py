@@ -128,7 +128,19 @@ class Tokenizer:
             if i in formula_raw:
                 raise Exception("数式に不正な記号の組み合わせが含まれています。 at "+i)
         #これで、数式の入力上のエラーについては全て対処できたことになる。
+
+
         #ここから、実際の数式の解析処理に入る。
-        temp=""#数値などは複数の文字が連続しうるので、tempに一時的に文字を保存してまとめて処理することがある。
+        #場合によっては、処理をまとめて進めてあとで文字を一気に飛ばしたほうがいい場合が考えられるので、あえてiは数値としてループを回す。
+        for i in range(0,len(formula_raw)):
+            #まず、何も気にせず処理ができるのは(,)についてである。
+            if formula_raw[i]=="(":
+                self.data.append(Token("("))
+                continue
+            if formula_raw[i]==")":
+                self.data.append(Token(")"))
+                continue
+            #次に、*や/について考える。
         
-test=Tokenizer(")13(5/2)+3(")
+test=Tokenizer("(3)")
+print("Hello!")

@@ -1,4 +1,4 @@
-#Int型であるかどうかチェックする関数があると便利なので、定義する。
+#引数として与えられたデータがInt型であるかどうかチェックして1か0を返す関数があると便利なので、定義する。
 def is_Int(i):
     try:
         int(i)
@@ -17,7 +17,7 @@ class Token:
         self.number=0.0#数値データの場合は数値に変わる
         self.bracketStart=0#括弧の開始地点ではこれが1になる
         self.bracketStop=0#括弧の終了地点ではこれが1になる
-        self.isNull=1#これの中身がないならば1になる
+        self.isNull=1#これの中身がないならば1になる、これが1になった要素はデータを整える関数が呼び出されると同時に消されて、
 
         #コンストラクタに渡された記号や数値などを解析して分類し、上のパラメーターを設定していく。
         processed=0
@@ -41,7 +41,7 @@ class Token:
         except:
             pass
 
-        try:#次に加算、乗算の記号や括弧などのときについての処理を書く。また、減産、除算についての記号などは、後に書くように数値自体を-にする、あとで(-1)をかける、逆数にする、などで処理を行う。
+        try:#次に加算、乗算の記号や括弧などのときについての処理を書く。また、減産についての記号などは、後に書くように数値自体を-にする、あとで(-1)をかけるなどで処理を行う。
             if data=="+":
                 self.isCommand=1
                 self.isNull=0
@@ -55,11 +55,17 @@ class Token:
             if data=="(":
                 self.isNull=0
                 self.bracketStart=1
+                self.text="("
                 processed=1
             if data==")":
                 self.isNull=0
                 self.bracketStop=1
+                self.text=")"
                 processed=1
+            if data=="/":
+                self.isNull=0
+                self.isCommand=1
+                self.text=data
         except:
             pass
 
@@ -71,6 +77,10 @@ class Tokenizer:
     def __init__(self,formula_raw):#formula_rawは文字列型の状態の数式
         self.data=[]#Token型の配列をここに代入していく
         self.bracketDepth=[]#ここにint型の配列という形で、式の括弧により作られる構造に関する情報を入れていく。
+
+        #せっかくここから構文を解析するので、見やすいように打ち込んでも大丈夫なように、数式の中に適宜スペースを入れても問題がないようにしたい。
+        #入力された数式の中から全ての半角スペースを取り除けば良い。
+        formula_raw=formula_raw.replace(" ","")
 
         #ここからのプログラムでは入力された数式のチェックを行う。
 
@@ -132,20 +142,31 @@ class Tokenizer:
 
         #ここから、実際の数式の解析処理に入る。
         #場合によっては、処理をまとめて進めてあとで文字を一気に飛ばしたほうがいい場合が考えられるので、あえてiは数値としてループを回す。
-        for i in range(0,len(formula_raw)):
-            #まず、何も気にせず処理ができるのは(,)についてである。
+        i=0
+        while i<len(formula_raw):
+
+
+
+
+            #まず、括弧については、２つ隣り合った場合は必要に応じて乗算記号を追加するように実装する。
             if formula_raw[i]=="(":
                 self.data.append(Token("("))
+                i+=1
                 continue
             if formula_raw[i]==")":
                 self.data.append(Token(")"))
+                i+=1
+                if i<len(formula_raw):
+                    if formula_raw[i]=="(":
+                        self.data.append(Token("*"))
                 continue
 
             #次に、*や/について考える。
             #*や/の後ろに来うるものとして、数値や"+数値","-数値",(,-(のみが考えられる。もし+や-が来た場合は、その後ろの数値の符号として処理できる。（後述の理由で）
             #また、(-数値)という形の場合にも、"*-数値"のような形で扱って良い。(数式上"*-数値"は厳密には間違いではあるが、電卓である以上使いやすさや柔軟性があったほうがよく、
-            #また"*-"という文字列については*(-数値)という意味にしかとれないため、このような設計にした。
+            #また"*-"という文字列については*(-数値)という意味にしかとれないため、このような設計にした。）
             #まず掛け算について考える。
+            #以下が"*数値","*+数値","*-数値"という形式についての実装である。
             if formula_raw[i]=="*":
                 self.data.append(Token("*"))
                 i+=1
@@ -157,9 +178,117 @@ class Tokenizer:
                         temp+=formula_raw[i]
                         if i==len(formula_raw)-1:
                             cont=0
+                        if is_Int(formula_raw[i+1]):
+                            pass
+                        else:
+                            cont=0
                         i+=1
                     self.data.append(Token(temp))
+                    i+=1
+                    continue
+
+                #つぎに、"*-(","*(-","*+(","*(+"という文字があった場合の処理について実装する。
+                #これらの場合、括弧より先の部分に数値が一つあるか、２つあるかに応じて処理を変えるべきである。
+                if formula_raw[i]+formula_raw[i+1] in ["-(","(-","+(","(+"]:
+                    temp=""
+                    if "-" in formula_raw[i]+formula_raw[i+1]:
+                        temp="-"
+                    save=i
+                    i+=2
+                    cont=1
+                    while cont==1:
+                        if i+1==len(formula_raw):
+                            cont=0
+                        if is_Int(formula_raw[i]):
+                            temp+=formula_raw[i]
+                        if formula_raw[i]==")":
+                            self.data.append(Token(temp))
+                            cont=0
+                        if formula_raw[i] in "+-*/":
+                            temp=""
+                            i=save
+                            cont=0
+                        i+=1
+                    continue
+                continue
+
+            #次に,-の場合について考える。
+            #後ろに(が来ている場合は、*(-1)というふうに変換してやると処理できる。
+            #後ろに数値が来ている場合は、その数値が負であるとして処理して良い。（後に、計算させる段階では、数値の要素が２つ隣り合った場合はそれらの和を取るようにする）
+            if formula_raw[i]=="-":
+                if formula_raw[i+1]=="(":#後ろに"("がある場合
+                    self.data.append(Token("-1"))
+                    self.data.append(Token("("))
+                    i+=2
+                    continue
+                if is_Int(formula_raw[i+1]):#後ろに数値が続く場合
+                    cont=1
+                    save=i
+                    i+=1
+                    temp="-"
+                    while cont:
+                        if i+1==len(formula_raw):
+                            cont=0
+                        if is_Int(formula_raw[i]):
+                            temp+=formula_raw[i]
+                        if is_Int(formula_raw[i+1]):
+                            cont=0
+                        i+=1
+                    self.data.append(Token(temp))
+                    continue
+
+            #次に、ただの数値が存在している場合について考える。
+            #この場合、前に述べたように、和の場合などは特段計算の指示をする記号については気にする必要はない。
+            #前に")"が来ている場合、後ろに"("が来ている場合については、これは掛け算として扱う必要がある。
+            if is_Int(formula_raw[i]):
+                if i>0:#直前が括弧で終わっている場合、掛け算を挿入する処理
+                    if formula_raw[i-1]==")":
+                        self.data.append(Token("*"))
+                #次に、どこまでが追加すべき数値であるかを分析して、数値の部分の文字列を取り出す。
+                if i<len(formula_raw)-1:
+                    temp=formula_raw[i]
+                    cont=1
+                    i+=1
+                    while cont:
+                        if is_Int(formula_raw[i]):
+                            temp+=formula_raw[i]
+                            i+=1
+                            if i==len(formula_raw):
+                                cont=0
+                        else:
+                            cont=0
+                    self.data.append(Token(temp))
+                    continue
+                else:
+                    self.data.append(Token(formula_raw[i]))
+                    i+=1
+                    continue
+
+            #次に、i番目の文字が"+"である時のことを考える。
+            #この場合の処理として、普通に"+"記号を追加すればいいだけである。
+            if formula_raw[i]=="+":
+                self.data.append(Token("+"))
+                i+=1
+                continue
+
+            #次に、i番目の文字が/である場合について考える。
+            if formula_raw[i]=="/":
+                self.data.append(Token("/"))
+                i+=1
+                continue
+
+
+    def show_tokens(self):
+        for i in self.data:
+            print(i.text+"   ")
+            
+
+
+
+
 
         
-test=Tokenizer("3*-33")
-print("Hello!")
+formula=input("数式を入力してください。")
+solveit=Tokenizer(formula)
+print("認識した数式はこちらです")
+solveit.show_tokens()

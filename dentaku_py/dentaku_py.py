@@ -346,13 +346,15 @@ class Tokenizer:
                 self.data[processing-1].isNull=1
                 self.data[processing+1].isNull=1
                 cont=0
-                cont2=0
+                cont2adding=0
             if self.data[processing].text=="/" and cont:
                 self.data[processing]=Token(self.data[processing-1].number/self.data[processing+1].number)
                 self.data[processing-1].isNull=1
                 self.data[processing+1].isNull=1
                 cont=0
-                cont2=0
+                cont2adding=0
+            if self.data[processing].text==")" and cont:
+                cout=0
             processing+=1
             if processing>=len(self.data)-1:
                 cont=0
@@ -366,12 +368,15 @@ class Tokenizer:
                 cont2adding=0
             if processing>=len(self.data)-1:
                 cont2adding=0
+            if self.data[processing].text==")":
+                cont2adding=0
             processing+=1
         self.cleanup_unneeded_bracket()
 
     def solve(self):
         cont=1
         while cont==1:
+            self.cleanup_unneeded_bracket()
             self.solve_onestep()
             if len(self.data)==1:
                 cont=0

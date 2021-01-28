@@ -77,7 +77,7 @@ class Tokenizer:
 
     def __init__(self,formula_raw):#formula_rawは文字列型の状態の数式
         self.data=[]#Token型の配列をここに代入していく
-        self.bracketDepth=0#ここにintとして、括弧の最大の深さを入れる。後で計算するときに使う。
+        self.calcpoint=0#括弧の構造からどの部分を最初に計算すべきと言えるかの数値。data[calcpoint]は最も深い階層の最初の要素
 
         #せっかくここから構文を解析するので、見やすいように打ち込んでも大丈夫なように、数式の中に適宜スペースを入れても問題がないようにしたい。
         #入力された数式の中から全ての半角スペースを取り除けば良い。
@@ -319,22 +319,42 @@ class Tokenizer:
                 self.data[i+2].isNull=1
         self.cleanup_null()
 
-    def update_bracketinfo(self):
+    def update_bracketinfo(self):#どこから計算し始めるのがいいか求める
         self.bracketDepth=0
-        cleanup_unneeded_bracket()
+        self.cleanup_unneeded_bracket()
         i=0
         imax=0
-        for i in self.data:
-            if data.text=="(":
+        j=0
+        for k in self.data:
+            if k.text=="(":
                 i+=1
-                imax=i
-            if data.text==")":
+                if i>imax:
+                    imax=i
+                    self.calcpoint=j
+            if k.text==")":
                 i-=1
+            j+=1
 
-def solve_onestep(self):#一ステップだけ計算を行う
-    
-
-
+    def solve_onestep(self):#一ステップだけ計算を行う
+        self.update_bracketinfo()#計算し始める場所の情報を更新する
+        processing=self.calcpoint
+        cont=1
+        while cont==1:#まず掛け算、割り算について処理する
+            if self.data[processing].text=="*" and cont:
+                self.data[processing]=Token(self.data[processing-1].number*self.data[processing+1].isNull)
+                self.data[processing-1].isNull=1
+                self.data[processing+1].isNull=1
+                cont=0
+            if self.data[processing].text=="/" and cont:
+                self.data[processing]=Token(self.data[processing-1].number/self.data[processing+1].isNull)
+                self.data[processing-1].isNull=1
+                self.data[processing+1].isNull=1
+            #次に加算について処理する
+            if self.data[processing].text=="+" and cont:
+                self.data[processing]=Token(self.data[processing-1].number+self.data[processing+1].isNull)
+                self.data[processing-1].isNull=1
+                self.data[processing+1].isNull=1
+            processing+=1
 
 
 
@@ -342,4 +362,6 @@ def solve_onestep(self):#一ステップだけ計算を行う
 formula=input("数式を入力してください。")
 solveit=Tokenizer(formula)
 print("認識した数式はこちらです")
+solveit.show_tokens()
+solveit.solve_onestep()
 solveit.show_tokens()

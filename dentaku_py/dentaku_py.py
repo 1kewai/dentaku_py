@@ -294,7 +294,16 @@ class Tokenizer:
 
     def show_tokens(self):#現在保持している単語列を表示・列挙する
         for i in self.data:
-            print(i.text+"   ")
+            print(i.text)
+
+    def cleanup_null(self):#無視されていて消される予定の要素を消していく
+        cp=self.data
+        for i in self.data:
+            if i.isNull:
+                pass
+            else:
+                cp.append(i)
+        data=cp
             
 
 

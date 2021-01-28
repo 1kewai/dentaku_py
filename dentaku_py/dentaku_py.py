@@ -341,20 +341,23 @@ class Tokenizer:
         cont=1
         while cont==1:#まず掛け算、割り算について処理する
             if self.data[processing].text=="*" and cont:
-                self.data[processing]=Token(self.data[processing-1].number*self.data[processing+1].isNull)
+                self.data[processing]=Token(self.data[processing-1].number*self.data[processing+1].number)
                 self.data[processing-1].isNull=1
                 self.data[processing+1].isNull=1
                 cont=0
             if self.data[processing].text=="/" and cont:
-                self.data[processing]=Token(self.data[processing-1].number/self.data[processing+1].isNull)
+                self.data[processing]=Token(self.data[processing-1].number/self.data[processing+1].number)
                 self.data[processing-1].isNull=1
                 self.data[processing+1].isNull=1
             #次に加算について処理する
             if self.data[processing].text=="+" and cont:
-                self.data[processing]=Token(self.data[processing-1].number+self.data[processing+1].isNull)
+                self.data[processing]=Token(self.data[processing-1].number+self.data[processing+1].number)
                 self.data[processing-1].isNull=1
                 self.data[processing+1].isNull=1
+            if processing==len(self.data)-1:
+                cont=0
             processing+=1
+        self.cleanup_unneeded_bracket()
 
 
 
@@ -364,4 +367,5 @@ solveit=Tokenizer(formula)
 print("認識した数式はこちらです")
 solveit.show_tokens()
 solveit.solve_onestep()
+print("答えはこちらです")
 solveit.show_tokens()

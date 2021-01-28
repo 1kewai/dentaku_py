@@ -84,8 +84,7 @@ class Tokenizer:
             if i==")":
                 bracketStopNumber+=1
         if bracketStartNumber!=bracketStopNumber:
-            print("括弧の始まる数と終わる数が合いません。数式が不正です。")
-            raise Exception()
+            raise Exception("括弧の始まる数と終わる数が合いません。数式が不正です。")
 
         #他に簡単にチェックできる事柄として、式の始まり方、終わり方が正しいかどうか、が挙げられる。
         #例えば、*や/から式が始まるのは入力間違いであるし、+や-,(で式が終わるのも入力間違いである。
@@ -103,8 +102,7 @@ class Tokenizer:
         if formula_raw[-1] in CheckPattern:
             pass
         else:
-            print("式の終わりに許容できない文字が使われています。")
-            raise Exception()
+            raise Exception("式の終わりに許容できない文字が使われています。")
 
         #次にこの式について、中身に不正な文字などが含まれていないことをチェックする必要がある。
         #数式の中にあってもよい文字として、数値、小数点、+,-,*,/,(,)が存在する。
@@ -120,8 +118,7 @@ class Tokenizer:
                 OK=0
                 errorstr=i
         if OK==0:
-            print("数式中に不正な文字が含まれています。確認して再試行してください。 at "+errorstr)
-            raise Exception()
+            raise Exception("数式中に不正な文字が含まれています。確認して再試行してください。 at "+errorstr)
 
         #次にこの式について、考えられないパターンの文字列が存在しないかどうかをチェックする。
         #例えば、数式の中に(\や*)などの文字列が来たら不正であると言える。
@@ -129,8 +126,7 @@ class Tokenizer:
         DenyPattern=["(*","(/","+)","-)","*)","/)","()","+*","-*","+/","-/"]
         for i in DenyPattern:
             if i in formula_raw:
-                print("数式に不正な記号の組み合わせが含まれています。 at "+i)
-                raise Exception()
+                raise Exception("数式に不正な記号の組み合わせが含まれています。 at "+i)
         #これで、数式の入力上のエラーについては全て対処できたことになる。
         #ここから、実際の数式の解析処理に入る。
         temp=""#数値などは複数の文字が連続しうるので、tempに一時的に文字を保存してまとめて処理することがある。

@@ -41,7 +41,7 @@ class Token:
         except:
             pass
 
-        try:#次に加算、乗算の記号や括弧などのときについての処理を書く。また、減産についての記号などは、後に書くように数値自体を-にする、あとで(-1)をかけるなどで処理を行う。
+        try:#次に加算、乗算の記号や括弧などのときについての処理を書く。また、減算についての記号などは、後に書くように数値自体を-にする、あとで(-1)をかけるなどで処理を行う。
             if data=="+":
                 self.isCommand=1
                 self.isNull=0
@@ -171,7 +171,7 @@ class Tokenizer:
                 self.data.append(Token("*"))
                 i+=1
                 #上で数式の形式についてはチェックしたので、この場合はi+1が境界内かのチェックは不要
-                if is_Int(formula_raw[i]) or formula_raw[i]=="+" or formula_raw[i]=="-":
+                if is_Int(formula_raw[i]) or formula_raw[i]=="+" or formula_raw[i]=="-" or formula_raw[i]==".":
                     cont=1
                     temp=""
                     while cont==1:
@@ -180,11 +180,14 @@ class Tokenizer:
                             cont=0
                         if is_Int(formula_raw[i+1]):
                             pass
+                        elif formula_raw[i+1]==".":
+                            pass
                         else:
                             cont=0
                         i+=1
+                        if i==len(formula_raw):
+                            cont=0
                     self.data.append(Token(temp))
-                    i+=1
                     continue
 
                 #つぎに、"*-(","*(-","*+(","*(+"という文字があった場合の処理について実装する。
@@ -218,6 +221,7 @@ class Tokenizer:
             if formula_raw[i]=="-":
                 if formula_raw[i+1]=="(":#後ろに"("がある場合
                     self.data.append(Token("-1"))
+                    self.data.append(Token("*"))
                     self.data.append(Token("("))
                     i+=2
                     continue
@@ -249,15 +253,25 @@ class Tokenizer:
                     temp=formula_raw[i]
                     cont=1
                     i+=1
+                    addMultiple=0#これが1だった場合は乗算記号を追加する。
                     while cont:
                         if is_Int(formula_raw[i]):
                             temp+=formula_raw[i]
                             i+=1
                             if i==len(formula_raw):
                                 cont=0
+                        elif formula_raw[i]==".":#小数点である場合も上手く扱うためにこのようにしている
+                            temp+=formula_raw[i]
+                            i+=1
+                            if i==len(formula_raw):
+                                cont=0
+                        elif formula_raw[i]=="(":
+                            addMultiple=1#乗算記号の追加が必要かどうか判断する
                         else:
                             cont=0
                     self.data.append(Token(temp))
+                    if addMultiple:#必要に応じて乗算記号を追加
+                        self.data.append(Token("*"))
                     continue
                 else:
                     self.data.append(Token(formula_raw[i]))
@@ -278,7 +292,7 @@ class Tokenizer:
                 continue
 
 
-    def show_tokens(self):
+    def show_tokens(self):#現在保持している単語列を表示・列挙する
         for i in self.data:
             print(i.text+"   ")
             

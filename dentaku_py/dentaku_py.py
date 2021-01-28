@@ -140,7 +140,26 @@ class Tokenizer:
             if formula_raw[i]==")":
                 self.data.append(Token(")"))
                 continue
+
             #次に、*や/について考える。
+            #*や/の後ろに来うるものとして、数値や"+数値","-数値",(,-(のみが考えられる。もし+や-が来た場合は、その後ろの数値の符号として処理できる。（後述の理由で）
+            #また、(-数値)という形の場合にも、"*-数値"のような形で扱って良い。(数式上"*-数値"は厳密には間違いではあるが、電卓である以上使いやすさや柔軟性があったほうがよく、
+            #また"*-"という文字列については*(-数値)という意味にしかとれないため、このような設計にした。
+            #まず掛け算について考える。
+            if formula_raw[i]=="*":
+                self.data.append(Token("*"))
+                i+=1
+                #上で数式の形式についてはチェックしたので、この場合はi+1が境界内かのチェックは不要
+                if is_Int(formula_raw[i]) or formula_raw[i]=="+" or formula_raw[i]=="-":
+                    cont=1
+                    temp=""
+                    while cont==1:
+                        temp+=formula_raw[i]
+                        if i==len(formula_raw)-1:
+                            cont=0
+                        i+=1
+                    self.data.append(Token(temp))
+
         
-test=Tokenizer("(3)")
+test=Tokenizer("3*-33")
 print("Hello!")

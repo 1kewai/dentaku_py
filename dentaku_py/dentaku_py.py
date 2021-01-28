@@ -322,11 +322,11 @@ class Tokenizer:
         self.cleanup_null()
 
     def update_bracketinfo(self):#どこから計算し始めるのがいいか求める
-        self.bracketDepth=0
         self.cleanup_unneeded_bracket()
         i=0
         imax=0
         j=0
+        self.calcpoint=0
         for k in self.data:
             if k.text=="(":
                 i+=1

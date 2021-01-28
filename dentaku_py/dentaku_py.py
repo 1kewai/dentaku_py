@@ -74,9 +74,10 @@ class Tokenizer:
     #上で定義したToken型の変数について、普通の数式には複数あるので、まとめて扱いやすくするためのクラスを作る。
 
 
+
     def __init__(self,formula_raw):#formula_rawは文字列型の状態の数式
         self.data=[]#Token型の配列をここに代入していく
-        self.bracketDepth=[]#ここにint型の配列という形で、式の括弧により作られる構造に関する情報を入れていく。
+        self.bracketDepth=0#ここにintとして、括弧の最大の深さを入れる。後で計算するときに使う。
 
         #せっかくここから構文を解析するので、見やすいように打ち込んでも大丈夫なように、数式の中に適宜スペースを入れても問題がないようにしたい。
         #入力された数式の中から全ての半角スペースを取り除けば良い。
@@ -267,6 +268,7 @@ class Tokenizer:
                                 cont=0
                         elif formula_raw[i]=="(":
                             addMultiple=1#乗算記号の追加が必要かどうか判断する
+                            cont=0
                         else:
                             cont=0
                     self.data.append(Token(temp))
@@ -290,21 +292,47 @@ class Tokenizer:
                 self.data.append(Token("/"))
                 i+=1
                 continue
+        
+        self.cleanup_unneeded_bracket()
+        return
 
 
+        
     def show_tokens(self):#現在保持している単語列を表示・列挙する
         for i in self.data:
             print(i.text)
 
     def cleanup_null(self):#無視されていて消される予定の要素を消していく
-        cp=self.data
+        cp=[]
         for i in self.data:
             if i.isNull:
                 pass
             else:
                 cp.append(i)
-        data=cp
+        self.data=cp
             
+    def cleanup_unneeded_bracket(self):#数値の両隣に括弧がある場合、その不要と言える括弧を消去する
+        self.cleanup_null()
+        for i in range(0,len(self.data)-2):
+            if self.data[i].text=="(" and self.data[i+2].text==")":
+                self.data[i].isNull=1
+                self.data[i+2].isNull=1
+        self.cleanup_null()
+
+    def update_bracketinfo(self):
+        self.bracketDepth=0
+        cleanup_unneeded_bracket()
+        i=0
+        imax=0
+        for i in self.data:
+            if data.text=="(":
+                i+=1
+                imax=i
+            if data.text==")":
+                i-=1
+
+def solve_onestep(self):#一ステップだけ計算を行う
+    
 
 
 

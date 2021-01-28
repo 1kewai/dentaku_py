@@ -1,5 +1,14 @@
+#Int型であるかどうかチェックする関数があると便利なので、定義する。
+def is_Int(i):
+    try:
+        int(i)
+        return 1
+    except:
+        return 0
+
 class Token:
     #このクラスを利用して、数式から検出された、意味を持つ単語の最小単位である数値や加算減算などの記号、括弧などを使いやすい形で管理する。
+    #このインスタンスの初期化に使える引数は計算に関する一部の記号と数値のみである。
 
     def __init__(self,data):#コンストラクタ
         self.isNumber=0#数値であるかどうかの情報、1or0
@@ -20,8 +29,7 @@ class Token:
                 self.text=data
                 processed=1
         except:
-            print("数値の入力が不正です。確認して再試行してください。")
-            raise Exception()
+            pass
 
         try:#次にint型数値について書く。
             if int(data):
@@ -55,18 +63,17 @@ class Token:
         except:
             pass
 
-        if processed==0:
-            print("式の形が不正です。")
-            raise Exception()
 
 class Tokenizer:
     #上で定義したToken型の変数について、普通の数式には複数あるので、まとめて扱いやすくするためのクラスを作る。
+
 
     def __init__(self,formula_raw):#formula_rawは文字列型の状態の数式
         self.data=[]#Token型の配列をここに代入していく
         self.bracketDepth=[]#ここにint型の配列という形で、式の括弧により作られる構造に関する情報を入れていく。
 
         #ここからのプログラムでは入力された数式のチェックを行う。
+
         #入力された式が本当に正しいかテストする必要がある。
         #括弧の開始と終了の数が等しいか確認する。
         bracketStartNumber=0
@@ -84,30 +91,19 @@ class Tokenizer:
         #例えば、*や/から式が始まるのは入力間違いであるし、+や-,(で式が終わるのも入力間違いである。
         #これらはこの段階でチェックしておく。
         #式のはじめの文字について、許容できるのは数値、+,-,数値,(のいずれかである。
-        OK=0
-        CheckPattern="+-("
+        CheckPattern="+-(0123456789"
         if formula_raw[0] in CheckPattern:
-            OK=1
-        try:
-            int(formula_raw[0])
-            OK=1
-        except:
             pass
-        if OK==0:
-            print("不正な式です。")
-            raise Exception()
+        else:
+            raise Exception("不正な式です。")
 
         #式の終わりについては、許容できるのは数値、)のみである。
         OK=0
-        if formula_raw[-1]==")":
-            OK=1
-        try:
-            int(formula_raw[-1])
-            OK=1
-        except:
+        CheckPattern=")0123456789"
+        if formula_raw[-1] in CheckPattern:
             pass
-        if OK==0:
-            print("不正な式です。")
+        else:
+            print("式の終わりに許容できない文字が使われています。")
             raise Exception()
 
         #次にこの式について、中身に不正な文字などが含まれていないことをチェックする必要がある。
@@ -135,6 +131,8 @@ class Tokenizer:
             if i in formula_raw:
                 print("数式に不正な記号の組み合わせが含まれています。 at "+i)
                 raise Exception()
+        #これで、数式の入力上のエラーについては全て対処できたことになる。
+        #ここから、実際の数式の解析処理に入る。
         temp=""#数値などは複数の文字が連続しうるので、tempに一時的に文字を保存してまとめて処理することがある。
-
-test=Tokenizer("13(*15/2)")
+        
+test=Tokenizer(")13(5/2)+3(")

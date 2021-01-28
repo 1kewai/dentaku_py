@@ -179,15 +179,14 @@ class Tokenizer:
                         temp+=formula_raw[i]
                         if i==len(formula_raw)-1:
                             cont=0
-                        if is_Int(formula_raw[i+1]):
-                            pass
-                        elif formula_raw[i+1]==".":
-                            pass
-                        else:
-                            cont=0
+                        if cont:
+                            if is_Int(formula_raw[i+1]):
+                                pass
+                            elif formula_raw[i+1]==".":
+                                pass
+                            else:
+                                cont=0
                         i+=1
-                        if i==len(formula_raw):
-                            cont=0
                     self.data.append(Token(temp))
                     continue
 
@@ -261,6 +260,7 @@ class Tokenizer:
                             i+=1
                             if i==len(formula_raw):
                                 cont=0
+                                continue
                         elif formula_raw[i]==".":#小数点である場合も上手く扱うためにこのようにしている
                             temp+=formula_raw[i]
                             i+=1
@@ -339,26 +339,42 @@ class Tokenizer:
         self.update_bracketinfo()#計算し始める場所の情報を更新する
         processing=self.calcpoint
         cont=1
+        cont2adding=1
         while cont==1:#まず掛け算、割り算について処理する
             if self.data[processing].text=="*" and cont:
                 self.data[processing]=Token(self.data[processing-1].number*self.data[processing+1].number)
                 self.data[processing-1].isNull=1
                 self.data[processing+1].isNull=1
                 cont=0
+                cont2=0
             if self.data[processing].text=="/" and cont:
                 self.data[processing]=Token(self.data[processing-1].number/self.data[processing+1].number)
                 self.data[processing-1].isNull=1
                 self.data[processing+1].isNull=1
-            #次に加算について処理する
-            if self.data[processing].text=="+" and cont:
+                cont=0
+                cont2=0
+            processing+=1
+            if processing>=len(self.data)-1:
+                cont=0
+        #次に加算について処理する
+        processing=self.calcpoint
+        while cont2adding==1:
+            if self.data[processing].text=="+":
                 self.data[processing]=Token(self.data[processing-1].number+self.data[processing+1].number)
                 self.data[processing-1].isNull=1
                 self.data[processing+1].isNull=1
-            if processing==len(self.data)-1:
-                cont=0
+                cont2adding=0
+            if processing>=len(self.data)-1:
+                cont2adding=0
             processing+=1
         self.cleanup_unneeded_bracket()
 
+    def solve(self):
+        cont=1
+        while cont==1:
+            self.solve_onestep()
+            if len(self.data)==1:
+                cont=0
 
 
         
@@ -366,6 +382,6 @@ formula=input("数式を入力してください。")
 solveit=Tokenizer(formula)
 print("認識した数式はこちらです")
 solveit.show_tokens()
-solveit.solve_onestep()
+solveit.solve()
 print("答えはこちらです")
 solveit.show_tokens()

@@ -299,8 +299,10 @@ class Tokenizer:
 
         
     def show_tokens(self):#現在保持している単語列を表示・列挙する
+        string=""
         for i in self.data:
-            print(i.text)
+            string+=str(i.text)+" ; "
+        print(string)
 
     def cleanup_null(self):#無視されていて消される予定の要素を消していく
         cp=[]
@@ -341,6 +343,9 @@ class Tokenizer:
         cont=1
         cont2adding=1
         while cont==1:#まず掛け算、割り算について処理する
+            if self.data[processing].text==")" and cont:
+                cont=0
+                continue
             if self.data[processing].text=="*" and cont:
                 self.data[processing]=Token(self.data[processing-1].number*self.data[processing+1].number)
                 self.data[processing-1].isNull=1
@@ -353,22 +358,21 @@ class Tokenizer:
                 self.data[processing+1].isNull=1
                 cont=0
                 cont2adding=0
-            if self.data[processing].text==")" and cont:
-                cout=0
             processing+=1
             if processing>=len(self.data)-1:
                 cont=0
         #次に加算について処理する
         processing=self.calcpoint
         while cont2adding==1:
+            if self.data[processing].text==")":
+                cont2adding=0
+                continue
             if self.data[processing].text=="+":
                 self.data[processing]=Token(self.data[processing-1].number+self.data[processing+1].number)
                 self.data[processing-1].isNull=1
                 self.data[processing+1].isNull=1
                 cont2adding=0
             if processing>=len(self.data)-1:
-                cont2adding=0
-            if self.data[processing].text==")":
                 cont2adding=0
             processing+=1
         self.cleanup_unneeded_bracket()

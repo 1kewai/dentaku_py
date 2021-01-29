@@ -6,6 +6,7 @@ def is_Int(i):
     except:
         return 0
 
+#!!!ここから下の部分は、実際に数式を計算順序を考慮しながら解くために使われる部分!!!
 class Token:
     #このクラスを利用して、数式から検出された、意味を持つ単語の最小単位である数値や加算減算などの記号、括弧などを使いやすい形で管理する。
     #このインスタンスの初期化に使える引数は計算に関する一部の記号と数値のみである。
@@ -28,7 +29,8 @@ class Token:
         except:
             pass
 
-        try:#次にint型数値について書く。
+        try:#次にint型数値について書く。このソフトの設計上呼び出されることは無いはずではあるが、これを用意しておくと外部から直接データ構造を触る最などに便利であり、、
+            #このクラスの、転用して使える使える幅が広がる。
             if int(data):
                 self.isNull=0
                 self.isNumber=1
@@ -323,7 +325,7 @@ class Tokenizer:
                 self.data[i+2].isNull=1
         self.cleanup_null()
 
-    def update_bracketinfo(self):#どこから計算し始めるのがいいか求める
+    def update_bracketinfo(self):#どこから計算し始めるのがいいか求めるために、括弧の構造について調べる。一番深い階層の始点の番号をself.calcpointに保持させる。
         self.cleanup_unneeded_bracket()
         i=0
         imax=0
@@ -340,6 +342,10 @@ class Tokenizer:
             j+=1
 
     def solve_onestep(self):#一ステップだけ計算を行う
+        #計算を行わせるとき、まず、上の関数で求められた一番深い階層の中身について、*,/を探して演算する。
+        #もしもない場合は、+について探して見つかれば演算を行う。
+        #演算を行う記号の要素がそのまま演算結果の数値に変わる。
+        #演算されてもう不要となった数値については、isNullが1になり、後でisNullとなっている要素を消すときに消えることになる。また、それまでの間、この要素は無視される。
         self.update_bracketinfo()#計算し始める場所の情報を更新する
         processing=self.calcpoint
         cont=1
@@ -380,6 +386,10 @@ class Tokenizer:
         self.cleanup_unneeded_bracket()
 
     def solve(self):
+        #この数式を完全に解く
+        #要素の数は計算に伴い減っていき、最終的には答えの数値の要素のみが残る形となる。
+        #そこで、なんども一ステップの演算と不要な要素の排除を繰り返し、要素が一つだけとなる状況を目指す。
+        #残り要素が一つとなった時点で計算を終了し、結果が出たということにする。
         cont=1
         while cont==1:
             self.cleanup_unneeded_bracket()
@@ -387,8 +397,9 @@ class Tokenizer:
             if len(self.data)==1:
                 cont=0
 
+#!!!実際に計算を解くために使われる部分はここまで!!!
 
-        
+#Mainloop
 formula=input("数式を入力してください。")
 solveit=Tokenizer(formula)
 print("認識した数式はこちらです")

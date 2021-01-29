@@ -411,10 +411,18 @@ def get_sanitized_input():
 def shortcut_replacer(fstring):
     return fstring.replace("K","*1000").replace("M","*1000000").replace("R","8.31").replace("C","299792458").replace("z","*1.1")
 
+#!!!ここから先については、この電卓の機能の一つである三角関数や対数関数の計算機能について実装していく。
+#この部分については、実装を簡単にするためにあえて上の四則演算の計算とは切り離している。
+#こうすることで、関数に渡された四則演算の式などを計算した上でsinなどの関数の結果を計算することが簡単になる。
+def function_solver(formula_raw):
+    i=0
+    while i<len(formula_raw)-4:#式の後ろの部分について、関数(数値)がもし後ろに来ても少なくとも4文字は前に関数名が来ているはずなのでこれでよい
+
+
 #Mainloop
 formula=shortcut_replacer(get_sanitized_input())
 solveit=Tokenizer(formula)
-print("認識した数式はこちらです。(数式内の要素をそれぞれ区切って表示します)")
+print("認識した数式はこちらです。(数式内の要素をそれぞれ区切って表示します。また、関数や定数などは実際の数値に置き換えられて表示します。)")
 solveit.show_tokens()
 solveit.solve()
 print("答えはこちらです")

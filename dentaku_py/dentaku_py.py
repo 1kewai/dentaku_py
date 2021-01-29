@@ -79,6 +79,13 @@ class Tokenizer:
         self.data=[]#Token型の配列をここに代入していく
         self.calcpoint=0#括弧の構造からどの部分を最初に計算すべきと言えるかの数値。data[calcpoint]は最も深い階層の最初の要素
 
+        #もし渡されたものが唯一つだけの数値であるならば、解析は必要ない。
+        try:
+            self.data.append(Token(float(formula_raw)))
+            return
+        except:
+            pass
+
         #ここからのプログラムでは入力された数式のチェックを行う。
 
         #入力された式が本当に正しいかテストする必要がある。
@@ -439,11 +446,12 @@ def function_solver(formula_raw):
             hikisuu=shortcut_replacer(get_sanitized_input(hikisuu))
             solve=Tokenizer(hikisuu)
             solve.solve()
-            formula_output+=sin(solveit.data[0].Number)
-
+            formula_output+=str(math.sin(float(solve.data[0].number)))
+        return formula_output
 
 #Mainloop
 formula=shortcut_replacer(get_sanitized_input(input("数式を入力してください。")))
+formula=function_solver(formula)
 solveit=Tokenizer(formula)
 print("認識した数式はこちらです。(数式内の要素をそれぞれ区切って表示します。また、関数や定数などは実際の数値に置き換えられて表示します。)")
 solveit.show_tokens()

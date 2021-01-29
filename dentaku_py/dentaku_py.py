@@ -12,11 +12,8 @@ class Token:
 
     def __init__(self,data):#コンストラクタ
         self.isNumber=0#数値であるかどうかの情報、1or0
-        self.isCommand=0#加減算、乗算除算などの記号であるかの情報、1or0
         self.text=""#データを文字で置いておく
         self.number=0.0#数値データの場合は数値に変わる
-        self.bracketStart=0#括弧の開始地点ではこれが1になる
-        self.bracketStop=0#括弧の終了地点ではこれが1になる
         self.isNull=1#これの中身がないならば1になる、これが1になった要素はデータを整える関数が呼び出されると同時に消されて、
 
         #コンストラクタに渡された記号や数値などを解析して分類し、上のパラメーターを設定していく。

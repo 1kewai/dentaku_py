@@ -6,7 +6,7 @@ def is_Int(i):
     except:
         return 0
 
-#!!!ここから下の部分は、実際に数式を計算順序を考慮しながら解くために使われる部分!!!
+#!!!ここから下の部分は、実際に数式を計算順序を考慮しながら四則演算について解くために使われる部分!!!
 class Token:
     #このクラスを利用して、数式から検出された、意味を持つ単語の最小単位である数値や加算減算などの記号、括弧などを使いやすい形で管理する。
     #このインスタンスの初期化に使える引数は計算に関する一部の記号と数値のみである。
@@ -77,10 +77,6 @@ class Tokenizer:
     def __init__(self,formula_raw):#formula_rawは文字列型の状態の数式
         self.data=[]#Token型の配列をここに代入していく
         self.calcpoint=0#括弧の構造からどの部分を最初に計算すべきと言えるかの数値。data[calcpoint]は最も深い階層の最初の要素
-
-        #せっかくここから構文を解析するので、見やすいように打ち込んでも大丈夫なように、数式の中に適宜スペースを入れても問題がないようにしたい。
-        #入力された数式の中から全ての半角スペースを取り除けば良い。
-        formula_raw=formula_raw.replace(" ","")
 
         #ここからのプログラムでは入力された数式のチェックを行う。
 
@@ -397,12 +393,28 @@ class Tokenizer:
             if len(self.data)==1:
                 cont=0
 
-#!!!実際に計算を解くために使われる部分はここまで!!!
+#!!!実際に四則演算の計算を解くために使われる部分はここまで!!!
+
+#!!!ここから先は、数式を打ちやすくするための部分!!!
+#数式を打ち込むときに、例えば途中に適宜スペースを加えても大丈夫な仕組みになっていると、見やすいように工夫して打ち込むことができるようになる。
+#他に考えられる工夫として、()を間違って{}や[]で表現した場合などについても、()に変換して計算してあげると訂正して入力し直す手間がかかりにくい。
+def get_sanitized_input():
+    string_raw=input("数式を入力してください。")
+    string_raw=string_raw.replace("{","(").replace("}",")")
+    string_raw=string_raw.replace("[","(").replace("]",")")
+    string_raw=string_raw.replace(" ","")
+    return string_raw
+
+
+#!!!ここから先は、この電卓の機能であるショートカット機能のためのプログラム
+#ショートカット機能では、K,Mなどの接頭辞を適切に10^nに変換する、RやCを気体定数や光速に置き換える、zをつけるだけで税込みに変換するなどの機能をもたせる。
+def shortcut_replacer(fstring):
+    return fstring.replace("K","*1000").replace("M","*1000000").replace("R","8.31").replace("C","299792458").replace("z","*1.1")
 
 #Mainloop
-formula=input("数式を入力してください。")
+formula=shortcut_replacer(get_sanitized_input())
 solveit=Tokenizer(formula)
-print("認識した数式はこちらです")
+print("認識した数式はこちらです。(数式内の要素をそれぞれ区切って表示します)")
 solveit.show_tokens()
 solveit.solve()
 print("答えはこちらです")

@@ -398,9 +398,8 @@ class Tokenizer:
 #!!!ここから先は、数式を打ちやすくするための部分!!!
 #数式を打ち込むときに、例えば途中に適宜スペースを加えても大丈夫な仕組みになっていると、見やすいように工夫して打ち込むことができるようになる。
 #他に考えられる工夫として、()を間違って{}で表現した場合などについても、()に変換して計算してあげると訂正して入力し直す手間がかかりにくい。
-def get_sanitized_input():
-    string_raw=input("数式を入力してください。")
-    return string_raw.replace("{","(").replace("}",")").replace(" ","")
+def get_sanitized_input(string):
+    return string.replace("{","(").replace("}",")").replace(" ","")
 
 
 #!!!ここから先は、この電卓の機能であるショートカット機能のためのプログラム
@@ -413,12 +412,35 @@ def shortcut_replacer(fstring):
 #こうすることで、関数に渡された四則演算の式などを計算した上でsinなどの関数の結果を計算することが簡単になる。
 #また、関数の括弧については、計算順序について示す括弧と区別するため、[]を使用することにする。
 def function_solver(formula_raw):
-    i=0
+    i=0#iについてはまだ処理できていない文字の場所を常に指すようにする。
+    formula_output=""
     while i<len(formula_raw)-4:#式の後ろの部分について、関数(数値)がもし後ろに来ても少なくとも4文字は前に関数名が来ているはずなのでこれでよい
+        if formula_raw[i] in "0123456789()+-*/":#関数とは関係ない数式のとき
+            formula_output+=formula_raw[i]
+            i+=1
+        elif formula_raw[i]=="[" or formula_raw[i]=="]":
+            "関数名もなく括弧が入力されている状況なので入力ミス"
+            raise Exception("数式の入力エラーがあります。関数の引数が存在しますが関数が存在しません。")
+        elif formula_raw[i]=="S" and formula_raw[i+1]=="i" and formula_raw[i+2]=="n" and formula_raw[i+3]=="[":
+            "この場合はこの関数はSin"
+            hikisuu=""
+            cont=1
+            i+=4
+            try:
+                while cont:
+                    hikisuu+=formula_raw[i]
+                    i+=1
+                    if formula_raw[i]=="]":
+                        i+=1
+                        cont=0
+            except:
+                raise Exception("関数式の記述が不正です。")
+
+
 
 
 #Mainloop
-formula=shortcut_replacer(get_sanitized_input())
+formula=shortcut_replacer(get_sanitized_input(input("数式を入力してください。")))
 solveit=Tokenizer(formula)
 print("認識した数式はこちらです。(数式内の要素をそれぞれ区切って表示します。また、関数や定数などは実際の数値に置き換えられて表示します。)")
 solveit.show_tokens()

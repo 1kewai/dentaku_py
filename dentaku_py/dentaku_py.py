@@ -1,3 +1,4 @@
+import math
 #引数として与えられたデータがInt型であるかどうかチェックして1か0を返す関数があると便利なので、定義する。
 def is_Int(i):
     try:
@@ -435,8 +436,10 @@ def function_solver(formula_raw):
                         cont=0
             except:
                 raise Exception("関数式の記述が不正です。")
-
-
+            hikisuu=shortcut_replacer(get_sanitized_input(hikisuu))
+            solve=Tokenizer(hikisuu)
+            solve.solve()
+            formula_output+=sin(solveit.data[0].Number)
 
 
 #Mainloop

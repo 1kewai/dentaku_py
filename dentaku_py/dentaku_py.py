@@ -447,7 +447,11 @@ def function_solver(formula_raw):
             solve=Tokenizer(hikisuu)
             solve.solve()
             formula_output+=str(math.sin(float(solve.data[0].number)))
-        return formula_output
+
+    while i<len(formula_raw):
+        formula_output+=formula_raw[i]
+        i+=1
+    return formula_output
 
 #Mainloop
 formula=shortcut_replacer(get_sanitized_input(input("数式を入力してください。")))

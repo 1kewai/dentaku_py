@@ -1,4 +1,5 @@
-import math
+import math #sin,cos,tan,logなどの計算に使用するために使う
+
 #引数として与えられたデータがInt型であるかどうかチェックして1か0を返す関数があると便利なので、定義する。
 def is_Int(i):
     try:
@@ -396,10 +397,12 @@ class Tokenizer:
         #残り要素が一つとなった時点で計算を終了し、結果が出たということにする。
         cont=1
         while cont==1:
-            self.cleanup_unneeded_bracket()
-            self.solve_onestep()
             if len(self.data)==1:
                 cont=0
+                break
+            self.cleanup_unneeded_bracket()
+            self.solve_onestep()
+
 
 #!!!実際に四則演算の計算を解くために使われる部分はここまで!!!
 
@@ -411,9 +414,9 @@ def get_sanitized_input(string):
 
 
 #!!!ここから先は、この電卓の機能であるショートカット機能のためのプログラム
-#ショートカット機能では、K,Mなどの接頭辞を適切に10^nに変換する、RやCを気体定数や光速に置き換える、zをつけるだけで税込みに変換するなどの機能をもたせる。
+#ショートカット機能では、K,Mなどの接頭辞を適切に10^nに変換する、Rやcを気体定数や光速に置き換える、zをつけるだけで税込みに変換するなどの機能をもたせる。
 def shortcut_replacer(fstring):
-    return fstring.replace("K","*1000").replace("M","*1000000").replace("R","8.31").replace("C","299792458").replace("z","*1.1")
+    return fstring.replace("K","*1000").replace("M","*1000000").replace("r","8.31").replace("c","299792458").replace("z","*1.1")
 
 #!!!ここから先については、この電卓の機能の一つである三角関数や対数関数の計算機能について実装していく。
 #この部分については、実装を簡単にするためにあえて上の四則演算の計算とは切り離している。
@@ -430,7 +433,7 @@ def function_solver(formula_raw):
             "関数名もなく括弧が入力されている状況なので入力ミス"
             raise Exception("数式の入力エラーがあります。関数の引数が存在しますが関数が存在しません。")
         elif formula_raw[i]=="S" and formula_raw[i+1]=="i" and formula_raw[i+2]=="n" and formula_raw[i+3]=="[":
-            "この場合はこの関数はSin"
+            #この場合はこの関数はSin
             hikisuu=""
             cont=1
             i+=4
@@ -447,6 +450,44 @@ def function_solver(formula_raw):
             solve=Tokenizer(hikisuu)
             solve.solve()
             formula_output+=str(math.sin(float(solve.data[0].number)))
+
+        elif formula_raw[i]=="C" and formula_raw[i+1]=="o" and formula_raw[i+2]=="s" and formula_raw[i+3]=="[":
+            #この場合はこの関数はCos
+            hikisuu=""
+            cont=1
+            i+=4
+            try:
+                while cont:
+                    hikisuu+=formula_raw[i]
+                    i+=1
+                    if formula_raw[i]=="]":
+                        i+=1
+                        cont=0
+            except:
+                raise Exception("関数式の記述が不正です。")
+            hikisuu=shortcut_replacer(get_sanitized_input(hikisuu))
+            solve=Tokenizer(hikisuu)
+            solve.solve()
+            formula_output+=str(math.cos(float(solve.data[0].number)))
+
+        elif formula_raw[i]=="T" and formula_raw[i+1]=="a" and formula_raw[i+2]=="n" and formula_raw[i+3]=="[":
+            #この場合はこの関数はCos
+            hikisuu=""
+            cont=1
+            i+=4
+            try:
+                while cont:
+                    hikisuu+=formula_raw[i]
+                    i+=1
+                    if formula_raw[i]=="]":
+                        i+=1
+                        cont=0
+            except:
+                raise Exception("関数式の記述が不正です。")
+            hikisuu=shortcut_replacer(get_sanitized_input(hikisuu))
+            solve=Tokenizer(hikisuu)
+            solve.solve()
+            formula_output+=str(math.tan(float(solve.data[0].number)))
 
     while i<len(formula_raw):
         formula_output+=formula_raw[i]

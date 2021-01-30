@@ -545,6 +545,9 @@ while 1:
         formula=shortcut_replacer(get_sanitized_input(input("数式を入力してください。")))
         if formula=="":
             raise Exception("数式が入力されていません。")
+        if formula=="q":
+            print("プログラムを終了します")
+            break
         formula=function_solver(formula)
         solveit=Tokenizer(formula)
         solveit.solve()

@@ -550,9 +550,6 @@ while 1:
         solveit.solve()
         print("答えはこちらです　　"+str(solveit.data[0].number))
         print("")
-    except KeyboardInterrupt:
-        print("停止ボタンが押されました。プログラムを終了します。")
-        exit()
     except Exception as e:
         print(e)
         print("")

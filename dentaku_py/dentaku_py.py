@@ -80,6 +80,8 @@ class Tokenizer:
         self.data=[]#Token型の配列をここに代入していく
         self.calcpoint=0#括弧の構造からどの部分を最初に計算すべきと言えるかの数値。data[calcpoint]は最も深い階層の最初の要素
 
+        formula_raw=formula_raw.replace("--","+")
+
         #もし渡されたものが唯一つだけの数値であるならば、解析は必要ない。
         try:
             self.data.append(Token(float(formula_raw)))
@@ -229,7 +231,7 @@ class Tokenizer:
                     self.data.append(Token("("))
                     i+=2
                     continue
-                if is_Int(formula_raw[i+1]):#後ろに数値が続く場合
+                if is_Int(formula_raw[i+1]) or formula_raw[i+1]==".":#後ろに数値が続く場合
                     cont=1
                     save=i
                     i+=1
@@ -237,16 +239,15 @@ class Tokenizer:
                     while cont:
                         if i+1==len(formula_raw):
                             cont=0
-                        if is_Int(formula_raw[i]):
+                        if is_Int(formula_raw[i]) or formula_raw[i]==".":
                             temp+=formula_raw[i]
                         if i+1<len(formula_raw):
-                            if is_Int(formula_raw[i+1]):
+                            if is_Int(formula_raw[i+1]) == 0 and formula_raw[i+1]!=".":
                                 cont=0
-                        else:
-                            cont=0
                         i+=1
-                    if self.data[-1].isNumber:
-                        self.data.append(Token("+"))
+                    if len(self.data)!=0:
+                        if self.data[-1].isNumber:
+                            self.data.append(Token("+"))
                     self.data.append(Token(temp))
                     continue
 
@@ -426,7 +427,7 @@ def function_solver(formula_raw):
     i=0#iについてはまだ処理できていない文字の場所を常に指すようにする。
     formula_output=""
     while i<len(formula_raw)-4:#式の後ろの部分について、関数(数値)がもし後ろに来ても少なくとも4文字は前に関数名が来ているはずなのでこれでよい
-        if formula_raw[i] in "0123456789()+-*/":#関数とは関係ない数式のとき
+        if formula_raw[i] in "0123456789()+-*/.":#関数とは関係ない数式のとき
             formula_output+=formula_raw[i]
             i+=1
         elif formula_raw[i]=="[" or formula_raw[i]=="]":
@@ -471,7 +472,7 @@ def function_solver(formula_raw):
             formula_output+=str(math.cos(float(solve.data[0].number)))
 
         elif formula_raw[i]=="T" and formula_raw[i+1]=="a" and formula_raw[i+2]=="n" and formula_raw[i+3]=="[":
-            #この場合はこの関数はCos
+            #この場合はこの関数はTan
             hikisuu=""
             cont=1
             i+=4
@@ -489,17 +490,69 @@ def function_solver(formula_raw):
             solve.solve()
             formula_output+=str(math.tan(float(solve.data[0].number)))
 
+        
+        elif formula_raw[i]=="L" and formula_raw[i+1]=="o" and formula_raw[i+2]=="g" and formula_raw[i+3]=="[":
+            #この場合はこの関数はLog
+            hikisuu=""
+            cont=1
+            i+=4
+            try:
+                while cont:
+                    hikisuu+=formula_raw[i]
+                    i+=1
+                    if formula_raw[i]=="]":
+                        i+=1
+                        cont=0
+            except:
+                raise Exception("関数式の記述が不正です。")
+            hikisuu=shortcut_replacer(get_sanitized_input(hikisuu))
+            solve=Tokenizer(hikisuu)
+            solve.solve()
+            formula_output+=str(math.log(float(solve.data[0].number)))
+
+        elif formula_raw[i]=="E" and formula_raw[i+1]=="x" and formula_raw[i+2]=="p" and formula_raw[i+3]=="[":
+            #この場合はこの関数はExp
+            hikisuu=""
+            cont=1
+            i+=4
+            try:
+                while cont:
+                    hikisuu+=formula_raw[i]
+                    i+=1
+                    if formula_raw[i]=="]":
+                        i+=1
+                        cont=0
+            except:
+                raise Exception("関数式の記述が不正です。")
+            hikisuu=shortcut_replacer(get_sanitized_input(hikisuu))
+            solve=Tokenizer(hikisuu)
+            solve.solve()
+            formula_output+=str(math.exp(float(solve.data[0].number)))
+
+        else:
+            raise Exception("不正な文字が使用されています。")
+
     while i<len(formula_raw):
         formula_output+=formula_raw[i]
         i+=1
     return formula_output
 
+
+
 #Mainloop
-formula=shortcut_replacer(get_sanitized_input(input("数式を入力してください。")))
-formula=function_solver(formula)
-solveit=Tokenizer(formula)
-print("認識した数式はこちらです。(数式内の要素をそれぞれ区切って表示します。また、関数や定数などは実際の数値に置き換えられて表示します。)")
-solveit.show_tokens()
-solveit.solve()
-print("答えはこちらです")
-solveit.show_tokens()
+while 1:
+    try:
+        formula=shortcut_replacer(get_sanitized_input(input("数式を入力してください。")))
+        if formula=="":
+            raise Exception("数式が入力されていません。")
+        formula=function_solver(formula)
+        solveit=Tokenizer(formula)
+        solveit.solve()
+        print("答えはこちらです　　"+str(solveit.data[0].number))
+        print("")
+    except KeyboardInterrupt:
+        print("停止ボタンが押されました。プログラムを終了します。")
+        exit()
+    except Exception as e:
+        print(e)
+        print("")

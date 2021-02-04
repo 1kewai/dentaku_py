@@ -8,8 +8,9 @@ def is_Int(i):
     except:
         return 0
 
+#!!!ここから下の部分は、数式の処理と解釈を行う部分!!!#
 #!!!ここから下の部分は、実際に数式を計算順序を考慮しながら四則演算について解くために使われる部分!!!
-class Token:
+class Math_Token:
     #このクラスを利用して、数式から検出された、意味を持つ単語の最小単位である数値や加算減算などの記号、括弧などを使いやすい形で管理する。
     #このインスタンスの初期化に使える引数は計算に関する一部の記号と数値のみである。
 
@@ -71,10 +72,8 @@ class Token:
             pass
 
 
-class Tokenizer:
+class Math_Tokenizer:
     #上で定義したToken型の変数について、普通の数式には複数あるので、まとめて扱いやすくするためのクラスを作る。
-
-
 
     def __init__(self,formula_raw):#formula_rawは文字列型の状態の数式
         self.data=[]#Token型の配列をここに代入していく
@@ -84,7 +83,7 @@ class Tokenizer:
 
         #もし渡されたものが唯一つだけの数値であるならば、解析は必要ない。
         try:
-            self.data.append(Token(float(formula_raw)))
+            self.data.append(Math_Token(float(formula_raw)))
             return
         except:
             pass
@@ -152,20 +151,17 @@ class Tokenizer:
         i=0
         while i<len(formula_raw):
 
-
-
-
             #まず、括弧については、２つ隣り合った場合は必要に応じて乗算記号を追加するように実装する。
             if formula_raw[i]=="(":
-                self.data.append(Token("("))
+                self.data.append(Math_Token("("))
                 i+=1
                 continue
             if formula_raw[i]==")":
-                self.data.append(Token(")"))
+                self.data.append(Math_Token(")"))
                 i+=1
                 if i<len(formula_raw):
                     if formula_raw[i]=="(":
-                        self.data.append(Token("*"))
+                        self.data.append(Math_Token("*"))
                 continue
 
             #次に、*や/について考える。
@@ -175,7 +171,7 @@ class Tokenizer:
             #まず掛け算について考える。
             #以下が"*数値","*+数値","*-数値"という形式についての実装である。
             if formula_raw[i]=="*":
-                self.data.append(Token("*"))
+                self.data.append(Math_Token("*"))
                 i+=1
                 #上で数式の形式についてはチェックしたので、この場合はi+1が境界内かのチェックは不要
                 if is_Int(formula_raw[i]) or formula_raw[i]=="+" or formula_raw[i]=="-" or formula_raw[i]==".":
@@ -193,7 +189,7 @@ class Tokenizer:
                             else:
                                 cont=0
                         i+=1
-                    self.data.append(Token(temp))
+                    self.data.append(Math_Token(temp))
                     continue
 
                 #つぎに、"*-(","*(-","*+(","*(+"という文字があった場合の処理について実装する。
@@ -211,7 +207,7 @@ class Tokenizer:
                         if is_Int(formula_raw[i]):
                             temp+=formula_raw[i]
                         if formula_raw[i]==")":
-                            self.data.append(Token(temp))
+                            self.data.append(Math_Token(temp))
                             cont=0
                         if formula_raw[i] in "+-*/":
                             temp=""
@@ -226,9 +222,9 @@ class Tokenizer:
             #後ろに数値が来ている場合は、その数値が負であるとして処理して良い。（後に、計算させる段階では、数値の要素が２つ隣り合った場合はそれらの和を取るようにする）
             if formula_raw[i]=="-":
                 if formula_raw[i+1]=="(":#後ろに"("がある場合
-                    self.data.append(Token("-1"))
-                    self.data.append(Token("*"))
-                    self.data.append(Token("("))
+                    self.data.append(Math_Token("-1"))
+                    self.data.append(Math_Token("*"))
+                    self.data.append(Math_Token("("))
                     i+=2
                     continue
                 if is_Int(formula_raw[i+1]) or formula_raw[i+1]==".":#後ろに数値が続く場合
@@ -247,8 +243,8 @@ class Tokenizer:
                         i+=1
                     if len(self.data)!=0:
                         if self.data[-1].isNumber:
-                            self.data.append(Token("+"))
-                    self.data.append(Token(temp))
+                            self.data.append(Math_Token("+"))
+                    self.data.append(Math_Token(temp))
                     continue
 
             #次に、ただの数値が存在している場合について考える。
@@ -257,7 +253,7 @@ class Tokenizer:
             if is_Int(formula_raw[i]):
                 if i>0:#直前が括弧で終わっている場合、掛け算を挿入する処理
                     if formula_raw[i-1]==")":
-                        self.data.append(Token("*"))
+                        self.data.append(Math_Token("*"))
                 #次に、どこまでが追加すべき数値であるかを分析して、数値の部分の文字列を取り出す。
                 if i<len(formula_raw)-1:
                     temp=formula_raw[i]
@@ -281,25 +277,25 @@ class Tokenizer:
                             cont=0
                         else:
                             cont=0
-                    self.data.append(Token(temp))
+                    self.data.append(Math_Token(temp))
                     if addMultiple:#必要に応じて乗算記号を追加
-                        self.data.append(Token("*"))
+                        self.data.append(Math_Token("*"))
                     continue
                 else:
-                    self.data.append(Token(formula_raw[i]))
+                    self.data.append(Math_Token(formula_raw[i]))
                     i+=1
                     continue
 
             #次に、i番目の文字が"+"である時のことを考える。
             #この場合の処理として、普通に"+"記号を追加すればいいだけである。
             if formula_raw[i]=="+":
-                self.data.append(Token("+"))
+                self.data.append(Math_Token("+"))
                 i+=1
                 continue
 
             #次に、i番目の文字が/である場合について考える。
             if formula_raw[i]=="/":
-                self.data.append(Token("/"))
+                self.data.append(Math_Token("/"))
                 i+=1
                 continue
         
@@ -361,13 +357,13 @@ class Tokenizer:
                 cont=0
                 continue
             if self.data[processing].text=="*" and cont:
-                self.data[processing]=Token(self.data[processing-1].number*self.data[processing+1].number)
+                self.data[processing]=Math_Token(self.data[processing-1].number*self.data[processing+1].number)
                 self.data[processing-1].isNull=1
                 self.data[processing+1].isNull=1
                 cont=0
                 cont2adding=0
             if self.data[processing].text=="/" and cont:
-                self.data[processing]=Token(self.data[processing-1].number/self.data[processing+1].number)
+                self.data[processing]=Math_Token(self.data[processing-1].number/self.data[processing+1].number)
                 self.data[processing-1].isNull=1
                 self.data[processing+1].isNull=1
                 cont=0
@@ -382,7 +378,7 @@ class Tokenizer:
                 cont2adding=0
                 continue
             if self.data[processing].text=="+":
-                self.data[processing]=Token(self.data[processing-1].number+self.data[processing+1].number)
+                self.data[processing]=Math_Token(self.data[processing-1].number+self.data[processing+1].number)
                 self.data[processing-1].isNull=1
                 self.data[processing+1].isNull=1
                 cont2adding=0
@@ -409,21 +405,14 @@ class Tokenizer:
 
 #!!!ここから先は、数式を打ちやすくするための部分!!!
 #数式を打ち込むときに、例えば途中に適宜スペースを加えても大丈夫な仕組みになっていると、見やすいように工夫して打ち込むことができるようになる。
-#他に考えられる工夫として、()を間違って{}で表現した場合などについても、()に変換して計算してあげると訂正して入力し直す手間がかかりにくい。
 def get_sanitized_input(string):
-    return string.replace("{","(").replace("}",")").replace(" ","")
-
-
-#!!!ここから先は、この電卓の機能であるショートカット機能のためのプログラム
-#ショートカット機能では、K,Mなどの接頭辞を適切に10^nに変換する、Rやcを気体定数や光速に置き換える、zをつけるだけで税込みに変換するなどの機能をもたせる。
-def shortcut_replacer(fstring):
-    return fstring.replace("K","*1000").replace("M","*1000000").replace("r","8.31").replace("c","299792458").replace("z","*1.1")
+    return string.replace(" ","")
 
 #!!!ここから先については、この電卓の機能の一つである三角関数や対数関数の計算機能について実装していく。
 #この部分については、実装を簡単にするためにあえて上の四則演算の計算とは切り離している。
 #こうすることで、関数に渡された四則演算の式などを計算した上でsinなどの関数の結果を計算することが簡単になる。
 #また、関数の括弧については、計算順序について示す括弧と区別するため、[]を使用することにする。
-def function_solver(formula_raw):
+def formula_solver(formula_raw):
     i=0#iについてはまだ処理できていない文字の場所を常に指すようにする。
     formula_output=""
     while i<len(formula_raw)-4:#式の後ろの部分について、関数(数値)がもし後ろに来ても少なくとも4文字は前に関数名が来ているはずなのでこれでよい
@@ -447,8 +436,8 @@ def function_solver(formula_raw):
                         cont=0
             except:
                 raise Exception("関数式の記述が不正です。")
-            hikisuu=shortcut_replacer(get_sanitized_input(hikisuu))
-            solve=Tokenizer(hikisuu)
+            hikisuu=get_sanitized_input(hikisuu)
+            solve=Math_Tokenizer(hikisuu)
             solve.solve()
             formula_output+=str(math.sin(float(solve.data[0].number)))
 
@@ -466,8 +455,8 @@ def function_solver(formula_raw):
                         cont=0
             except:
                 raise Exception("関数式の記述が不正です。")
-            hikisuu=shortcut_replacer(get_sanitized_input(hikisuu))
-            solve=Tokenizer(hikisuu)
+            hikisuu=get_sanitized_input(hikisuu)
+            solve=Math_Tokenizer(hikisuu)
             solve.solve()
             formula_output+=str(math.cos(float(solve.data[0].number)))
 
@@ -485,8 +474,8 @@ def function_solver(formula_raw):
                         cont=0
             except:
                 raise Exception("関数式の記述が不正です。")
-            hikisuu=shortcut_replacer(get_sanitized_input(hikisuu))
-            solve=Tokenizer(hikisuu)
+            hikisuu=get_sanitized_input(hikisuu)
+            solve=Math_Tokenizer(hikisuu)
             solve.solve()
             formula_output+=str(math.tan(float(solve.data[0].number)))
 
@@ -505,8 +494,8 @@ def function_solver(formula_raw):
                         cont=0
             except:
                 raise Exception("関数式の記述が不正です。")
-            hikisuu=shortcut_replacer(get_sanitized_input(hikisuu))
-            solve=Tokenizer(hikisuu)
+            hikisuu=get_sanitized_input(hikisuu)
+            solve=Math_Tokenizer(hikisuu)
             solve.solve()
             formula_output+=str(math.log(float(solve.data[0].number)))
 
@@ -524,8 +513,8 @@ def function_solver(formula_raw):
                         cont=0
             except:
                 raise Exception("関数式の記述が不正です。")
-            hikisuu=shortcut_replacer(get_sanitized_input(hikisuu))
-            solve=Tokenizer(hikisuu)
+            hikisuu=get_sanitized_input(hikisuu)
+            solve=Math_Tokenizer(hikisuu)
             solve.solve()
             formula_output+=str(math.exp(float(solve.data[0].number)))
 
@@ -537,8 +526,87 @@ def function_solver(formula_raw):
         i+=1
     return formula_output
 
+#ここから先の部分では、True or Falseの条件式についても評価できるようにする。
+#まずは、条件式を単語ごとに分解した要素が入るデータの形について、クラスを使って扱いやすくする
+class Eval_Token:
+    string=""#解かれる前の、最も小さい要素
+    result=0#解いた結果
+    is_Reversed=0#先頭に!がついている場合、逆の意味で扱わなければならない。そのために使う。
+    And=0
+    Or=0
+    #括弧の開始と終了について
+    bracketStart=0
+    bracketStop=0
+    isNull=1#使用されていない要素なら1
+
+class Eval_Tokens:
+    data=Eval_Token[100]
+    bracketDepth=0#括弧の構造の最も深いところ
+
+def evaluate_one_cond(input_string):
+    if string=="1":
+        return 1
+    if string=="0":
+        return 0
+    if "<=" in input_string:
+        try:
+            temp=input_string.split("<=")
+            if int(temp[0])<=int(temp[1]):
+                return 1
+            else:
+                return 0
+        except:
+            raise Exception("条件式の値が不正です。")
+    if "<" in input_string:
+        try:
+            temp=input_string.split("<")
+            if int(temp[0])<int(temp[1]):
+                return 1
+            else:
+                return 0
+        except:
+            raise Exception("条件式の値が不正です。")
+    if ">" in input_string:
+        try:
+            temp=input_string.split(">")
+            if int(temp[0])>int(temp[1]):
+                return 1
+            else:
+                return 0
+        except:
+            raise Exception("条件式の値が不正です。")
+    if ">=" in input_string:
+        try:
+            temp=input_string.split(">=")
+            if int(temp[0])>=int(temp[1]):
+                return 1
+            else:
+                return 0
+        except:
+            raise Exception("条件式の値が不正です。")
+    if "==" in input_string:
+        temp=input_string.split("==")
+        if temp[0]==temp[1]:
+            return 1
+        else:
+            return 0
+
+def evaluate_cond(string_input):
+    #まずこれが条件式であるかどうか判断する必要がある。
+    cond=1
+    if "<=" in string_input or "<" in string_input or ">" in string_input or ">=" in string_input or "==" in string_input or "AND" in string_input or "OR" in string_input:
+        pass
+    else:
+        return string_input
+    #ここまでで、条件式ではないものはそのままreturnされている。
+    #次に、この条件式を実際に解くことを考える。
+    #And,Orの構造についても解析しながら進めなければならない。
+    #改修
+
+
 #UI、入出力を実装する関数
 #ヘルプページを表示する関数
+#あとで改修
 def helppage():
     print("簡単高機能電卓へようこそ！")
     print("")
@@ -546,29 +614,41 @@ def helppage():
     print("数式には、数値、+-*/().およびSin[],Cos[],Tan[],Log[],Exp[]が使えます。")
     print("ただし、関数の引数として数式を使用することはできません。")
 
+#スクリプトの様な形での自動実行も考えているので、入力された変数自体とその中で使われている変数をまとめて扱える様なデータの形があれば便利。
+class ExecutionInfo:
+    AllInput=""
+    ExecutionLine=0
+    ExecutionOrder=""
+    variable=dict()
+    IOLog=""
+
 def shell():
     while 1:
         try:
-            formula=shortcut_replacer(get_sanitized_input(input("数式を入力してください。")))#括弧などを適切に書き換えた数式を得る
+            formula=get_sanitized_input(input("数式を入力してください。"))#括弧などを適切に書き換えた数式を得る
             #何も入ってなければ
             if formula=="":
                 raise Exception("数式が入力されていません。")
             #プログラムを終了する
-            if formula==">q":
+            if formula=="q":
                 print("プログラムを終了します")
                 break
             #ヘルプの表示
-            if formula==">h" or formula==">help" or formula=="?":
+            if formula=="h" or formula=="help" or formula=="?":
                 helppage()
                 continue
-            formula=function_solver(formula)
-            solveit=Tokenizer(formula)
+            formula=formula_solver(formula)
+            solveit=Math_Tokenizer(formula)
             solveit.solve()
             print("答えはこちらです　　"+str(solveit.data[0].number))
             print("")
         except Exception as e:
             print(e)
             print("")
+
+def shell_dev():
+    Exec=ExecutionInfo()
+    #改修
 
 #Mainloop
 shell()

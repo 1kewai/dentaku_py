@@ -643,10 +643,21 @@ def ExecutionOneLine(ExecInfo):
             #成立時に実行する内容をorderに付け加える
             for i in temp:
                 order.append(i)
+            for_continue=1
         except:
             raise Exception("条件式が不正です")
     #次にIF文について実装する。IF文もfor文と同じように、実行条件を内部向けの記号で置き換える。
-    #改修
+    if ExecInfo.ExecutionOrder.startswith("IF"):
+        try:
+            cond_cont=ExecInfo.ExecutionOrder.split("(")[1].split(")")[0]#計算を継続する条件を書く
+            temp=order_nofunction.split("{")[1].split("}")[0].split(";")#IF文から、条件成立時に実行すべき命令の配列を取り出す
+            order.append("CONT("+cond_cont+"){continue}")#IF文の内容について、書き直した内部用記号で置き換える。
+            for i in temp:
+                order.append(i)
+        except:
+            raise Exception("条件式が不正です")
+    #ここから実行していく
+    
 
 def shell():
     while 1:

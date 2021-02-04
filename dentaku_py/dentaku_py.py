@@ -540,7 +540,7 @@ class Eval_Token:
     isNull=1#使用されていない要素なら1
 
 class Eval_Tokens:
-    data=Eval_Token[100]
+    data=[]
     bracketDepth=0#括弧の構造の最も深いところ
 
 def evaluate_one_cond(input_string):
@@ -591,7 +591,7 @@ def evaluate_one_cond(input_string):
         else:
             return 0
 
-def evaluate_cond(string_input):
+def evaluate_cond(string_input,ExecInfo):
     #まずこれが条件式であるかどうか判断する必要がある。
     cond=1
     if "<=" in string_input or "<" in string_input or ">" in string_input or ">=" in string_input or "==" in string_input or "AND" in string_input or "OR" in string_input:
@@ -599,6 +599,9 @@ def evaluate_cond(string_input):
     else:
         return string_input
     #ここまでで、条件式ではないものはそのままreturnされている。
+    #次に、このプログラムの変数を用いて、条件式の変数となっている部分を置き換えていく
+    for keys in ExecInfo.variable.keys:
+        string_input=string_input.replace(keys,ExecInfo.variable[key])
     #次に、この条件式を実際に解くことを考える。
     #And,Orの構造についても解析しながら進めなければならない。
     #ひとまずは簡単のため（先に他のところを作り込みたい....）、条件式一つだけのときのみに対応させることとする。
@@ -628,10 +631,21 @@ class ExecutionInfo:
 #実際の計算などの指示の実行を行う関数
 def ExecutionOneLine(ExecInfo):
     order=[]#ここに、実質行うべき命令たちを配列の形で収納する
-    ExecInfo.IOLog+=ExecutionOrder+"\n"#入出力ログに入力された命令を追記
-    #まず命令文中に含まれる関数を定数に置き換える。
-    order_nofunction=function_solver(ExecInfo.ExecutionOrder)
-    #次に、FOR/IF文についての処理を行う。
+    ExecInfo.IOLog+=">>>"+ExecutionOrder+"\n"#入出力ログに入力された命令を追記
+    #FOR文についての処理を行う。
+    for_continue=0
+    if ExecInfo.ExecutionOrder.startswith("FOR"):#for文の処理
+        try:
+            cond_cont=ExecInfo.ExecutionOrder.split("(")[1].split(")")[0]#計算を継続する条件を書く
+            temp=order_nofunction.split("{")[1].split("}")[0].split(";")#FOR文から、条件成立時に実行すべき命令の配列を取り出す
+            order.append("CONT("+cond_cont+"){continue}")#FOR文の内容について、書き直した内部用記号で置き換える。
+            #FOR文の場合だけfor_continueを1にして、もしこれが1ならばそのときだけはbreakされるまで複数回同じ命令を実行させる
+            #成立時に実行する内容をorderに付け加える
+            for i in temp:
+                order.append(i)
+        except:
+            raise Exception("条件式が不正です")
+    #次にIF文について実装する。IF文もfor文と同じように、実行条件を内部向けの記号で置き換える。
     #改修
 
 def shell():

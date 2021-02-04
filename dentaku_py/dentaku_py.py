@@ -537,22 +537,38 @@ def function_solver(formula_raw):
         i+=1
     return formula_output
 
+#UI、入出力を実装する関数
+#ヘルプページを表示する関数
+def helppage():
+    print("簡単高機能電卓へようこそ！")
+    print("")
+    print("数式の入力方法について")
+    print("数式には、数値、+-*/().およびSin[],Cos[],Tan[],Log[],Exp[]が使えます。")
+    print("ただし、関数の引数として数式を使用することはできません。")
 
+def shell():
+    while 1:
+        try:
+            formula=shortcut_replacer(get_sanitized_input(input("数式を入力してください。")))#括弧などを適切に書き換えた数式を得る
+            #何も入ってなければ
+            if formula=="":
+                raise Exception("数式が入力されていません。")
+            #プログラムを終了する
+            if formula==">q":
+                print("プログラムを終了します")
+                break
+            #ヘルプの表示
+            if formula==">h" or formula==">help" or formula=="?":
+                helppage()
+                continue
+            formula=function_solver(formula)
+            solveit=Tokenizer(formula)
+            solveit.solve()
+            print("答えはこちらです　　"+str(solveit.data[0].number))
+            print("")
+        except Exception as e:
+            print(e)
+            print("")
 
 #Mainloop
-while 1:
-    try:
-        formula=shortcut_replacer(get_sanitized_input(input("数式を入力してください。")))
-        if formula=="":
-            raise Exception("数式が入力されていません。")
-        if formula=="q":
-            print("プログラムを終了します")
-            break
-        formula=function_solver(formula)
-        solveit=Tokenizer(formula)
-        solveit.solve()
-        print("答えはこちらです　　"+str(solveit.data[0].number))
-        print("")
-    except Exception as e:
-        print(e)
-        print("")
+shell()

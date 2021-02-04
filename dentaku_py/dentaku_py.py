@@ -412,7 +412,7 @@ def get_sanitized_input(string):
 #この部分については、実装を簡単にするためにあえて上の四則演算の計算とは切り離している。
 #こうすることで、関数に渡された四則演算の式などを計算した上でsinなどの関数の結果を計算することが簡単になる。
 #また、関数の括弧については、計算順序について示す括弧と区別するため、[]を使用することにする。
-def formula_solver(formula_raw):
+def function_solver(formula_raw):
     i=0#iについてはまだ処理できていない文字の場所を常に指すようにする。
     formula_output=""
     while i<len(formula_raw)-4:#式の後ろの部分について、関数(数値)がもし後ろに来ても少なくとも4文字は前に関数名が来ているはずなのでこれでよい
@@ -606,7 +606,7 @@ def evaluate_cond(string_input):
     #改修
 
 
-#UI、入出力を実装する関数
+#UI、入出力を実装する関数たち
 #ヘルプページを表示する関数
 #あとで改修
 def helppage():
@@ -625,6 +625,15 @@ class ExecutionInfo:
     variable=dict()
     IOLog=""
 
+#実際の計算などの指示の実行を行う関数
+def ExecutionOneLine(ExecInfo):
+    order=[]#ここに、実質行うべき命令たちを配列の形で収納する
+    ExecInfo.IOLog+=ExecutionOrder+"\n"#入出力ログに入力された命令を追記
+    #まず命令文中に含まれる関数を定数に置き換える。
+    order_nofunction=function_solver(ExecInfo.ExecutionOrder)
+    #次に、FOR/IF文についての処理を行う。
+    #改修
+
 def shell():
     while 1:
         try:
@@ -640,7 +649,7 @@ def shell():
             if formula=="h" or formula=="help" or formula=="?":
                 helppage()
                 continue
-            formula=formula_solver(formula)
+            formula=function_solver(formula)
             solveit=Math_Tokenizer(formula)
             solveit.solve()
             print("答えはこちらです　　"+str(solveit.data[0].number))

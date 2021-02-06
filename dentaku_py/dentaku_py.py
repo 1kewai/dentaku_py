@@ -543,6 +543,11 @@ class Eval_Tokens:
     data=[]
     bracketDepth=0#括弧の構造の最も深いところ
 
+def replace_val(form,Exec):#変数を計算前に実際の数値と置き換えるための関数
+    for i in Exec.variable.keys():
+        form=form.replace(str(i),str(Exec.variable[i]))
+    return form
+
 def evaluate_one_cond(input_string):
     if input_string=="1":
         return 1
@@ -692,10 +697,24 @@ def ExecutionOneLine(ExecInfo):
                 print(0)
                 ExecInfo.IOLog+="0\n"
                 continue
+            substitute=0
+            val=""
+            if("=") in i:
+                substitute=1
+                temporar=i.split("=")
+                val=temporar[0]
+                i=temporar[1]
+                if temporar[0].startswith("$"):
+                    pass
+                else:
+                    raise Exception("変数名が不正です。")
+            i=replace_val(i,ExecInfo)
             formula=function_solver(i)
             solveit=Math_Tokenizer(formula)
             solveit.solve()
             print(str(solveit.data[0].number))
+            if substitute:
+                ExecInfo.variable[val]=solveit.data[0].number
             ExecInfo.IOLog+=str(solveit.data[0].number)
 
 def shell():

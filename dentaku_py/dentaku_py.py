@@ -640,8 +640,8 @@ def ExecutionOneLine(ExecInfo):
     if ExecInfo.ExecutionOrder.startswith("FOR"):#for文の処理
         try:
             cond_cont=ExecInfo.ExecutionOrder.split("(")[1].split(")")[0]#計算を継続する条件を書く
-            temp=order_nofunction.split("{")[1].split("}")[0].split(";")#FOR文から、条件成立時に実行すべき命令の配列を取り出す
-            order.append("CONT("+cond_cont+"){continue}")#FOR文の内容について、書き直した内部用記号で置き換える。
+            temp=ExecInfo.ExecutionOrder.split("{")[1].split("}")[0].split(";")#FOR文から、条件成立時に実行すべき命令の配列を取り出す
+            order.append("CONT("+cond_cont+")")#FOR文の内容について、書き直した内部用記号で置き換える。
             #FOR文の場合だけfor_continueを1にして、もしこれが1ならばそのときだけはbreakされるまで複数回同じ命令を実行させる
             #成立時に実行する内容をorderに付け加える
             for i in temp:

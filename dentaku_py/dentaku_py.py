@@ -544,9 +544,9 @@ class Eval_Tokens:
     bracketDepth=0#括弧の構造の最も深いところ
 
 def evaluate_one_cond(input_string):
-    if string=="1":
+    if input_string=="1":
         return 1
-    if string=="0":
+    if input_string=="0":
         return 0
     if "<=" in input_string:
         try:
@@ -590,6 +590,7 @@ def evaluate_one_cond(input_string):
             return 1
         else:
             return 0
+    return -1 #条件式が検出されない場合は-1を返す
 
 def evaluate_cond(string_input,ExecInfo):
     #まずこれが条件式であるかどうか判断する必要がある。
@@ -600,8 +601,9 @@ def evaluate_cond(string_input,ExecInfo):
         return string_input
     #ここまでで、条件式ではないものはそのままreturnされている。
     #次に、このプログラムの変数を用いて、条件式の変数となっている部分を置き換えていく
-    for keys in ExecInfo.variable.keys:
-        string_input=string_input.replace(keys,ExecInfo.variable[key])
+    if len(ExecInfo.variable)!=0:
+        for keys in ExecInfo.variable.keys:
+            string_input=string_input.replace(keys,ExecInfo.variable[key])
     #次に、この条件式を実際に解くことを考える。
     #And,Orの構造についても解析しながら進めなければならない。
     #ひとまずは簡単のため（先に他のところを作り込みたい....）、条件式一つだけのときのみに対応させることとする。
@@ -623,7 +625,6 @@ def helppage():
 #スクリプトの様な形での自動実行も考えているので、入力された変数自体とその中で使われている変数をまとめて扱える様なデータの形があれば便利。
 class ExecutionInfo:
     AllInput=""
-    ExecutionLine=0
     ExecutionOrder=""
     variable=dict()
     IOLog=""
@@ -631,9 +632,11 @@ class ExecutionInfo:
 #実際の計算などの指示の実行を行う関数
 def ExecutionOneLine(ExecInfo):
     order=[]#ここに、実質行うべき命令たちを配列の形で収納する
-    ExecInfo.IOLog+=">>>"+ExecutionOrder+"\n"#入出力ログに入力された命令を追記
+    ExecInfo.IOLog+=">>>"+ExecInfo.ExecutionOrder+"\n"#入出力ログに入力された命令を追記
     #FOR文についての処理を行う。
     for_continue=0
+    execif=0
+    execfor=0
     if ExecInfo.ExecutionOrder.startswith("FOR"):#for文の処理
         try:
             cond_cont=ExecInfo.ExecutionOrder.split("(")[1].split(")")[0]#計算を継続する条件を書く
@@ -644,20 +647,52 @@ def ExecutionOneLine(ExecInfo):
             for i in temp:
                 order.append(i)
             for_continue=1
+            execfor=1
         except:
             raise Exception("条件式が不正です")
     #次にIF文について実装する。IF文もfor文と同じように、実行条件を内部向けの記号で置き換える。
     if ExecInfo.ExecutionOrder.startswith("IF"):
         try:
             cond_cont=ExecInfo.ExecutionOrder.split("(")[1].split(")")[0]#計算を継続する条件を書く
-            temp=order_nofunction.split("{")[1].split("}")[0].split(";")#IF文から、条件成立時に実行すべき命令の配列を取り出す
-            order.append("CONT("+cond_cont+"){continue}")#IF文の内容について、書き直した内部用記号で置き換える。
+            temp=ExecInfo.ExecutionOrder.split("{")[1].split("}")[0].split(";")#IF文から、条件成立時に実行すべき命令の配列を取り出す
+            temp.append("")
+            order.append("CONT("+cond_cont+")")#IF文の内容について、書き直した内部用記号で置き換える。
             for i in temp:
                 order.append(i)
+                execif=1
         except:
             raise Exception("条件式が不正です")
-    #ここから実行していく
-    
+    #FOR文でもIF文でもなかった場合の処理について書く
+    if execfor==0 and execif==0:
+        order.append(ExecInfo.ExecutionOrder)
+    #上で解釈した命令を実行していく
+    cont_flag=1
+    while cont_flag:
+        cont_flag=for_continue
+        for i in order:
+            if i=="":
+                continue
+            if i.startswith("CONT("):
+                cond_cont=evaluate_cond(i[5:len(i)-1],ExecInfo)
+                if cond_cont==0:
+                    cont_flag=0
+                    break
+                if cond_cont==1:
+                    continue
+            #ここから計算自体を行う
+            if evaluate_cond(i,ExecInfo)==1:
+                print(1)
+                ExecInfo.IOLog+="1\n"
+                continue
+            if evaluate_cond(i,ExecInfo)==0:
+                print(0)
+                ExecInfo.IOLog+="0\n"
+                continue
+            formula=function_solver(i)
+            solveit=Math_Tokenizer(formula)
+            solveit.solve()
+            print(str(solveit.data[0].number))
+            ExecInfo.IOLog+=str(solveit.data[0].number)
 
 def shell():
     while 1:
@@ -685,7 +720,10 @@ def shell():
 
 def shell_dev():
     Exec=ExecutionInfo()
-    #改修
+    string_input=get_sanitized_input(input(">>>"))
+    Exec.AllInput+=string_input
+    Exec.ExecutionOrder=string_input
+    ExecutionOneLine(Exec)
 
 #Mainloop
-shell()
+shell_dev()

@@ -1,4 +1,8 @@
+Env_Colab=0#ファイル保存の方法を変えるために、Colab/jupyterの実行では1,PC上での実行では0にする
+
 import math #sin,cos,tan,logなどの計算に使用するために使う
+if Env_Colab:
+    from google.colab import files
 
 #引数として与えられたデータがInt型であるかどうかチェックして1か0を返す関数があると便利なので、定義する。
 def is_Int(i):
@@ -632,12 +636,10 @@ class ExecutionInfo:
     AllInput=""
     ExecutionOrder=""
     variable=dict()
-    IOLog=""
 
 #実際の計算などの指示の実行を行う関数
 def ExecutionOneLine(ExecInfo):
     order=[]#ここに、実質行うべき命令たちを配列の形で収納する
-    ExecInfo.IOLog+=">>>"+ExecInfo.ExecutionOrder+"\n"#入出力ログに入力された命令を追記
     #FOR文についての処理を行う。
     for_continue=0
     execif=0
@@ -691,11 +693,9 @@ def ExecutionOneLine(ExecInfo):
             #ここから計算自体を行う
             if evaluate_cond(i,ExecInfo)==1:
                 print(1)
-                ExecInfo.IOLog+="1\n"
                 continue
             if evaluate_cond(i,ExecInfo)==0:
                 print(0)
-                ExecInfo.IOLog+="0\n"
                 continue
             substitute=0
             val=""
@@ -715,14 +715,31 @@ def ExecutionOneLine(ExecInfo):
             print(str(solveit.data[0].number))
             if substitute:
                 ExecInfo.variable[val]=solveit.data[0].number
-            ExecInfo.IOLog+=str(solveit.data[0].number)
+
+#ファイルの保存を行う関数
+def save(filename,data):
+    with open(filename,"w") as f:
+        f.write(data)
+        f.close()
+
+#ファイルの読み出しを行う関数
+def read(filename):
+    tmp=""
+    with open(filename,"r") as f:
+        tmp=f.read()
+        f.close()
+    return tmp
 
 def shell():
-    Exec=ExecutionInfo()#実行時に全体で必要な変数のデータや実行内容・結果のログ、実行中の指示の内容などを記録するインスタンス
-    string_input=get_sanitized_input(input(">>>"))
-    Exec.AllInput+=string_input#入力を記録する
-    Exec.ExecutionOrder=string_input#実行する指示の内容についてインスタンスに書き込む
-    ExecutionOneLine(Exec)#式を解釈し実行する
+    Exec=ExecutionInfo()
+    while 1:
+        try:
+            string_input=get_sanitized_input(input(">>>"))
+            Exec.AllInput+=string_input#入力を記録する
+            Exec.ExecutionOrder=string_input#実行する指示の内容についてインスタンスに書き込む
+            ExecutionOneLine(Exec)#式を解釈し実行する
+        except Exception as e:
+            print(e)
 
 def shell_dev():
     Exec=ExecutionInfo()

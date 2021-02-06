@@ -614,16 +614,11 @@ def evaluate_cond(string_input,ExecInfo):
     if len(ExecInfo.variable)!=0:
         for keys in ExecInfo.variable.keys():
             string_input=string_input.replace(str(keys),str(ExecInfo.variable[keys]))
-    #次に、この条件式を実際に解くことを考える。
-    #And,Orの構造についても解析しながら進めなければならない。
-    #ひとまずは簡単のため（先に他のところを作り込みたい....）、条件式一つだけのときのみに対応させることとする。
     return evaluate_one_cond(string_input)
-    #改修
 
 
 #UI、入出力を実装する関数たち
 #ヘルプページを表示する関数
-#あとで改修
 def helppage():
     print("簡単高機能電卓へようこそ！")
     print("")

@@ -556,7 +556,7 @@ def evaluate_one_cond(input_string):
     if "<=" in input_string:
         try:
             temp=input_string.split("<=")
-            if int(temp[0])<=int(temp[1]):
+            if float(temp[0])<=float(temp[1]):
                 return 1
             else:
                 return 0
@@ -565,7 +565,7 @@ def evaluate_one_cond(input_string):
     if "<" in input_string:
         try:
             temp=input_string.split("<")
-            if int(temp[0])<int(temp[1]):
+            if float(temp[0])<float(temp[1]):
                 return 1
             else:
                 return 0
@@ -574,7 +574,7 @@ def evaluate_one_cond(input_string):
     if ">" in input_string:
         try:
             temp=input_string.split(">")
-            if int(temp[0])>int(temp[1]):
+            if float(temp[0])>float(temp[1]):
                 return 1
             else:
                 return 0
@@ -583,7 +583,7 @@ def evaluate_one_cond(input_string):
     if ">=" in input_string:
         try:
             temp=input_string.split(">=")
-            if int(temp[0])>=int(temp[1]):
+            if float(temp[0])>=float(temp[1]):
                 return 1
             else:
                 return 0

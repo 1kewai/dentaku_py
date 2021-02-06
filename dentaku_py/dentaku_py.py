@@ -593,7 +593,12 @@ def evaluate_one_cond(input_string):
         temp=input_string.split("==")
         if temp[0]==temp[1]:
             return 1
-        else:
+        try:
+            if float(temp[0])==float(temp[1]):
+                return 1
+            else:
+                return 0
+        except:
             return 0
     return -1 #条件式が検出されない場合は-1を返す
 
@@ -607,8 +612,8 @@ def evaluate_cond(string_input,ExecInfo):
     #ここまでで、条件式ではないものはそのままreturnされている。
     #次に、このプログラムの変数を用いて、条件式の変数となっている部分を置き換えていく
     if len(ExecInfo.variable)!=0:
-        for keys in ExecInfo.variable.keys:
-            string_input=string_input.replace(keys,ExecInfo.variable[key])
+        for keys in ExecInfo.variable.keys():
+            string_input=string_input.replace(str(keys),str(ExecInfo.variable[keys]))
     #次に、この条件式を実際に解くことを考える。
     #And,Orの構造についても解析しながら進めなければならない。
     #ひとまずは簡単のため（先に他のところを作り込みたい....）、条件式一つだけのときのみに対応させることとする。

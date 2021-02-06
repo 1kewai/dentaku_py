@@ -664,7 +664,11 @@ def ExecutionOneLine(ExecInfo):
             raise Exception("条件式が不正です")
     #FOR文でもIF文でもなかった場合の処理について書く
     if execfor==0 and execif==0:
-        order.append(ExecInfo.ExecutionOrder)
+        if ";" in ExecInfo.ExecutionOrder:
+            for i in ExecInfo.ExecutionOrder.split(";"):
+                order.append(i)
+        else:
+            order.append(ExecInfo.ExecutionOrder)
     #上で解釈した命令を実行していく
     cont_flag=1
     while cont_flag:
@@ -695,35 +699,22 @@ def ExecutionOneLine(ExecInfo):
             ExecInfo.IOLog+=str(solveit.data[0].number)
 
 def shell():
-    while 1:
-        try:
-            formula=get_sanitized_input(input("数式を入力してください。"))#括弧などを適切に書き換えた数式を得る
-            #何も入ってなければ
-            if formula=="":
-                raise Exception("数式が入力されていません。")
-            #プログラムを終了する
-            if formula=="q":
-                print("プログラムを終了します")
-                break
-            #ヘルプの表示
-            if formula=="h" or formula=="help" or formula=="?":
-                helppage()
-                continue
-            formula=function_solver(formula)
-            solveit=Math_Tokenizer(formula)
-            solveit.solve()
-            print("答えはこちらです　　"+str(solveit.data[0].number))
-            print("")
-        except Exception as e:
-            print(e)
-            print("")
+    Exec=ExecutionInfo()#実行時に全体で必要な変数のデータや実行内容・結果のログ、実行中の指示の内容などを記録するインスタンス
+    string_input=get_sanitized_input(input(">>>"))
+    Exec.AllInput+=string_input#入力を記録する
+    Exec.ExecutionOrder=string_input#実行する指示の内容についてインスタンスに書き込む
+    ExecutionOneLine(Exec)#式を解釈し実行する
 
 def shell_dev():
     Exec=ExecutionInfo()
-    string_input=get_sanitized_input(input(">>>"))
-    Exec.AllInput+=string_input
-    Exec.ExecutionOrder=string_input
-    ExecutionOneLine(Exec)
+    while 1:
+        try:
+            string_input=get_sanitized_input(input(">>>"))
+            Exec.AllInput+=string_input#入力を記録する
+            Exec.ExecutionOrder=string_input#実行する指示の内容についてインスタンスに書き込む
+            ExecutionOneLine(Exec)#式を解釈し実行する
+        except Exception as e:
+            print(e)
 
 #Mainloop
 shell_dev()

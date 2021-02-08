@@ -410,8 +410,9 @@ class Math_Tokenizer:
 
 #!!!ここから先は、数式を打ちやすくするための部分!!!
 #数式を打ち込むときに、例えば途中に適宜スペースを加えても大丈夫な仕組みになっていると、見やすいように工夫して打ち込むことができるようになる。
+#この電卓の機能である定数ショートカット機能もここで実装する。
 def get_sanitized_input(string):
-    return string.replace(" ","")
+    return string.replace(" ","").replace("\R","8.3144626").replace("\G","9.80665").replace("\C","299792458").replace("\Z","*1.1")
 
 #!!!ここから先については、この電卓の機能の一つである三角関数や対数関数の計算機能について実装していく。
 #この部分については、実装を簡単にするためにあえて上の四則演算の計算とは切り離している。
@@ -594,7 +595,7 @@ def evaluate_one_cond(input_string):
 def evaluate_cond(string_input,ExecInfo):
     #まずこれが条件式であるかどうか判断する必要がある。
     cond=1
-    if "<=" in string_input or "<" in string_input or ">" in string_input or ">=" in string_input or "==" in string_input or "AND" in string_input or "OR" in string_input:
+    if "<=" in string_input or "<" in string_input or ">" in string_input or ">=" in string_input or "==" in string_input:
         pass
     else:
         return string_input
@@ -625,6 +626,8 @@ def helppage():
     print("readと入力すればスクリプトなどのファイルを読み出して表示できます。")
     print("scriptと入力すればスクリプトを実行できます。")
     print("")
+    print("定数ショートカット機能の使い方")
+    print("数式中の文字の内、\Rは8.3144626（気体定数）に、\Gは9.80665に、\Cは299792458に変換されます。また、\Zと入力すると直前の数値が税込み数値に変換されます。")
     print("qを入力すればこのプログラムを終了できます。")
 
 class ExecutionInfo:

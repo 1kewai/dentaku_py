@@ -401,6 +401,9 @@ class Math_Tokenizer:
             if len(self.data)==1:
                 cont=0
                 break
+            elif len(self.data)==0:
+                self.data.append(Math_Token("0"))
+                break
             self.cleanup_unneeded_bracket()
             self.solve_onestep()
 
@@ -717,7 +720,7 @@ def ExecutionOneLine(ExecInfo):
                 ExecInfo.variable[val]=solveit.data[0].number
 
 #ファイルの保存を行う関数
-def save(filename,data):
+def write(filename,data):
     with open(filename,"w") as f:
         f.write(data)
         f.close()
@@ -744,13 +747,10 @@ def shell():
 def shell_dev():
     Exec=ExecutionInfo()
     while 1:
-        try:
-            string_input=get_sanitized_input(input(">>>"))
-            Exec.AllInput+=string_input#入力を記録する
-            Exec.ExecutionOrder=string_input#実行する指示の内容についてインスタンスに書き込む
-            ExecutionOneLine(Exec)#式を解釈し実行する
-        except Exception as e:
-            print(e)
+        string_input=get_sanitized_input(input(">>>"))
+        Exec.AllInput+=string_input#入力を記録する
+        Exec.ExecutionOrder=string_input#実行する指示の内容についてインスタンスに書き込む
+        ExecutionOneLine(Exec)#式を解釈し実行する
 
 #Mainloop
 shell_dev()

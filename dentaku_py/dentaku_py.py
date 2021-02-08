@@ -1,4 +1,4 @@
-Env_Colab=0#ファイル保存の方法を変えるために、Colab/jupyterの実行では1,PC上での実行では0にする
+Env_Colab=1#ファイル保存の方法を変えるために、Colab/jupyterの実行では1,PC上での実行では0にする
 
 import math #sin,cos,tan,logなどの計算に使用するために使う
 if Env_Colab:
@@ -22,7 +22,7 @@ class Math_Token:
         self.isNumber=0#数値であるかどうかの情報、1or0
         self.text=""#データを文字で置いておく
         self.number=0.0#数値データの場合は数値に変わる
-        self.isNull=1#これの中身がないならば1になる、これが1になった要素はデータを整える関数が呼び出されると同時に消されて、
+        self.isNull=1#これの中身がないならば1になる、これが1になった要素はデータを整える関数が呼び出されると同時に消される
 
         #コンストラクタに渡された記号や数値などを解析して分類し、上のパラメーターを設定していく。
         processed=0
@@ -36,8 +36,7 @@ class Math_Token:
         except:
             pass
 
-        try:#次にint型数値について書く。このソフトの設計上呼び出されることは無いはずではあるが、これを用意しておくと外部から直接データ構造を触る最などに便利であり、、
-            #このクラスの、転用して使える使える幅が広がる。
+        try:
             if int(data):
                 self.isNull=0
                 self.isNumber=1
@@ -151,7 +150,6 @@ class Math_Tokenizer:
 
 
         #ここから、実際の数式の解析処理に入る。
-        #場合によっては、処理をまとめて進めてあとで文字を一気に飛ばしたほうがいい場合が考えられるので、あえてiは数値としてループを回す。
         i=0
         while i<len(formula_raw):
 
@@ -533,22 +531,6 @@ def function_solver(formula_raw):
         i+=1
     return formula_output
 
-#ここから先の部分では、True or Falseの条件式についても評価できるようにする。
-#まずは、条件式を単語ごとに分解した要素が入るデータの形について、クラスを使って扱いやすくする
-class Eval_Token:
-    string=""#解かれる前の、最も小さい要素
-    result=0#解いた結果
-    is_Reversed=0#先頭に!がついている場合、逆の意味で扱わなければならない。そのために使う。
-    And=0
-    Or=0
-    #括弧の開始と終了について
-    bracketStart=0
-    bracketStop=0
-    isNull=1#使用されていない要素なら1
-
-class Eval_Tokens:
-    data=[]
-    bracketDepth=0#括弧の構造の最も深いところ
 
 def replace_val(form,Exec):#変数を計算前に実際の数値と置き換えるための関数
     for i in Exec.variable.keys():
@@ -623,8 +605,6 @@ def evaluate_cond(string_input,ExecInfo):
             string_input=string_input.replace(str(keys),str(ExecInfo.variable[keys]))
     return evaluate_one_cond(string_input)
 
-
-#UI、入出力を実装する関数たち
 #ヘルプページを表示する関数
 def helppage():
     print("簡単高機能電卓へようこそ！")
@@ -633,10 +613,21 @@ def helppage():
     print("数式には、数値、+-*/().およびSin[],Cos[],Tan[],Log[],Exp[]が使えます。")
     print("ただし、関数の引数として数式を使用することはできません。")
     print("")
+    print("変数機能の使い方について")
+    print("変数は、$(アルファベットの変数名)=(数値または数式)により代入できます。一度代入されると、$i=$i+1のような自身を使った計算もできます。")
+    print("")
+    print("FOR文、IF文の使い方について")
+    print("FOR(条件式){指示;指示;指示......;指示},IF(条件式){指示;指示;指示;.....;指示}の形式で使えます。")
+    print("条件式に使える記号は、==,<,>,<=,=>のみです。また、AND,OR計算には対応していません。")
+    print("")
+    print("スクリプト機能の使い方について")
+    print("editorと入力すればスクリプトを記述できます。editor内ではsaveと入力すると保存して終了できます。")
+    print("readと入力すればスクリプトなどのファイルを読み出して表示できます。")
+    print("scriptと入力すればスクリプトを実行できます。")
+    print("")
+    print("qを入力すればこのプログラムを終了できます。")
 
-#スクリプトの様な形での自動実行も考えているので、入力された変数自体とその中で使われている変数をまとめて扱える様なデータの形があれば便利。
 class ExecutionInfo:
-    AllInput=""
     ExecutionOrder=""
     variable=dict()
 
@@ -733,24 +724,57 @@ def read(filename):
         f.close()
     return tmp
 
+#スクリプト編集モード
+def editor():
+    script=""
+    while 1:
+        temp=input("script>")
+        if temp=="save":
+            filename=input("filename?")
+            write(filename,script)
+            return
+        script+=temp+"\n"
+
+#スクリプト読み出しモード
+def reader(arg):
+    print(read(arg))
+
+#スクリプト実行モード
+def prgexec(filename,Exec):
+    script=read(filename)
+    script_tmp=script.split("\n")
+    for i in script_tmp:
+        if i=="":
+            continue
+        print(filename+">>>"+i)
+        string_input=get_sanitized_input(i)
+        Exec.ExecutionOrder=i
+        ExecutionOneLine(Exec)
+
 def shell():
     Exec=ExecutionInfo()
     while 1:
         try:
             string_input=get_sanitized_input(input(">>>"))
-            Exec.AllInput+=string_input#入力を記録する
+            if string_input=="script":#スクリプト実行
+                filename=input("filename?")
+                prgexec(filename,Exec)
+                continue
+            if string_input=="editor":#簡易的なエディタ起動
+                editor()
+                continue
+            if string_input=="read":#ファイル読み出しモード
+                reader(input("filename?"))
+                continue
+            if string_input=="q":
+                return
+            if string_input=="?" or string_input=="help":
+                helppage()
+                continue
             Exec.ExecutionOrder=string_input#実行する指示の内容についてインスタンスに書き込む
             ExecutionOneLine(Exec)#式を解釈し実行する
         except Exception as e:
             print(e)
 
-def shell_dev():
-    Exec=ExecutionInfo()
-    while 1:
-        string_input=get_sanitized_input(input(">>>"))
-        Exec.AllInput+=string_input#入力を記録する
-        Exec.ExecutionOrder=string_input#実行する指示の内容についてインスタンスに書き込む
-        ExecutionOneLine(Exec)#式を解釈し実行する
-
 #Mainloop
-shell_dev()
+shell()
